@@ -15,7 +15,7 @@ Mange elever med autisme har utfordringer med å forstå tid som et abstrakt kon
 ## ✨ Funksjoner
 
 ### Grunnfunksjoner
-- 📊 **Årsklocka** - Visualiserer hele året med alle tidsenheter i konsentriske ringer
+- 📊 **Årsklokke** - Visualiserer hele året med alle tidsenheter i konsentriske ringer
 - 🎨 **Fargekodet** - Hver tidsenhet har sin unike farge for enkel gjenkjenning
 - 🔊 **Talestøtte** - Norsk opplesing av dato og klokkeslett
 - 🖱️ **Interaktiv** - Dra i viserne og ringene for å utforske tid
@@ -112,9 +112,8 @@ MIT License - se [LICENSE](LICENSE) for detaljer.
 
 ## 🙏 Takk til
 
-- Elever og kollegaer som har testet og gitt tilbakemeldinger
-- Spesialpedagogisk fagmiljø for verdifulle innspill
-- Foreldre som har delt sine erfaringer
+- fltman for Remix av: https://claude.ai/public/artifacts/15ac5e03-31be-4c7f-a278-52ccf8fc56f8?fbclid=IwY2xjawPYpS9leHRuA2FlbQIxMABicmlkETFHTzBTRm9hc2w1M3hXVHVKc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHoNuNSkvuykcU1VnvF9wG92-6eeXH9ypN_a4lH9JmB-LcnLhmmTmkAaLWQeV_aem_U-w23xDPO_j6YMJ41HaoYA
+  
 
 ---
 
