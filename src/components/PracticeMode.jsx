@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { speak, initVoices } from '../utils/speechUtils';
 
 const COLORS = {
   hours: '#2980b9',
@@ -217,14 +218,10 @@ function PracticeMode({ onClose }) {
     }
   };
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'nb-NO';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  // Initialize TTS voices on mount
+  useEffect(() => {
+    initVoices();
+  }, []);
 
   const difficultyLabels = {
     easy: 'Enkel',

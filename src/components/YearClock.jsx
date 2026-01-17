@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Palette from './Palette';
+import { speak, initVoices } from '../utils/speechUtils';
 
 const MONTHS_NO = [
   'Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni',
@@ -166,14 +167,9 @@ function YearClock({ simplifiedMode = false }) {
   const timeNoStr = `klokka ${hours} og ${minutes}`;
   const dateNoStr = `${day}. ${MONTHS_NO[month].toLowerCase()} ${year}`;
 
-  // Speak function
-  const speak = useCallback((text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'nb-NO';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
+  // Initialize TTS voices on mount
+  useEffect(() => {
+    initVoices();
   }, []);
 
   // Adjustment functions

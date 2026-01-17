@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { speak, initVoices } from '../utils/speechUtils';
 
 const DEFAULT_ROUTINES = [
   { id: 1, name: 'Våkne', hours: 7, minutes: 0, icon: '☀️' },
@@ -79,14 +80,10 @@ function DailyRoutine({ onClose }) {
     return diff > 0 && diff <= 30; // Innen 30 minutter
   };
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'nb-NO';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  // Initialize TTS voices on mount
+  useEffect(() => {
+    initVoices();
+  }, []);
 
   const speakRoutine = (routine) => {
     const timeUntil = getTimeUntil(routine.hours, routine.minutes);
