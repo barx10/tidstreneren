@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { speak, initVoices } from '../utils/speechUtils';
 
 function CountdownTimer({ onClose }) {
   const [targetHours, setTargetHours] = useState(12);
@@ -31,14 +32,10 @@ function CountdownTimer({ onClose }) {
     return () => clearInterval(interval);
   }, [isActive, targetHours, targetMinutes]);
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'nb-NO';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  // Initialize TTS voices on mount
+  useEffect(() => {
+    initVoices();
+  }, []);
 
   const speakRemaining = () => {
     if (!timeRemaining) return;
