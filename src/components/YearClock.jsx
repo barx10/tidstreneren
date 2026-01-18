@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Palette from './Palette';
 import { speak, initVoices } from '../utils/speechUtils';
-
-const MONTHS_NO = [
-  'Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'
-];
+import { useLanguage } from '../context/LanguageContext';
 
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -99,6 +95,8 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
 }
 
 function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime }) {
+  const { t, language } = useLanguage();
+  const months = t('months');
   const [clockSize, setClockSize] = useState(700);
   const [isRunning, setIsRunning] = useState(true);
   const [isDragging, setIsDragging] = useState(null);
@@ -164,9 +162,13 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const daysInCurrentMonth = getDaysInMonth(month, year);
   const isLeapDay = month === 1 && day === 29;
 
-  // Norwegian time strings
-  const timeNoStr = `klokka ${hours} og ${minutes}`;
-  const dateNoStr = `${day}. ${MONTHS_NO[month].toLowerCase()} ${year}`;
+  // Time strings based on language
+  const timeStr = language === 'no'
+    ? `klokka ${hours} og ${minutes}`
+    : `${hours}:${String(minutes).padStart(2, '0')}`;
+  const dateStr = language === 'no'
+    ? `${day}. ${months[month].toLowerCase()} ${year}`
+    : `${months[month]} ${day}, ${year}`;
 
   // Initialize TTS voices on mount
   useEffect(() => {
@@ -216,11 +218,11 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
   // Ring configuration - alle tilgjengelige ringer
   const allRings = [
-    { name: 'months', count: 12, value: month, color: COLORS.months, label: 'Måneder (12)' },
-    { name: 'days', count: daysInCurrentMonth, value: day - 1, color: COLORS.days, label: `Dager (${daysInCurrentMonth})` },
-    { name: 'hours', count: 24, value: hours, color: COLORS.hours, label: 'Timer (24)' },
-    { name: 'minutes', count: 60, value: minutes, color: COLORS.minutes, label: 'Minutter (60)' },
-    { name: 'seconds', count: 60, value: seconds, color: COLORS.seconds, label: 'Sekunder (60)' },
+    { name: 'months', count: 12, value: month, color: COLORS.months, label: t('clock.monthsLabel') },
+    { name: 'days', count: daysInCurrentMonth, value: day - 1, color: COLORS.days, label: `${t('clock.daysLabel')} (${daysInCurrentMonth})` },
+    { name: 'hours', count: 24, value: hours, color: COLORS.hours, label: t('clock.hoursLabel') },
+    { name: 'minutes', count: 60, value: minutes, color: COLORS.minutes, label: t('clock.minutesLabel') },
+    { name: 'seconds', count: 60, value: seconds, color: COLORS.seconds, label: t('clock.secondsLabel') },
   ];
 
   // Filtrer ringer basert på modus
@@ -504,7 +506,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                       transform={`rotate(${flipText ? rotation + 180 : rotation}, ${textX}, ${textY})`}
                       style={{ fontFamily: 'Georgia, serif' }}
                     >
-                      Skudddag
+                      {t('clock.leapDay')}
                     </text>
                   </g>
                 );
@@ -513,7 +515,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
           )}
 
           {/* Month labels - vis i normal modus, eller i enkel modus når måneder/år er valgt */}
-          {(!simplifiedMode || selectedUnits.months || selectedUnits.year) && MONTHS_NO.map((m, i) => {
+          {(!simplifiedMode || selectedUnits.months || selectedUnits.year) && months.map((m, i) => {
             const centerAngle = ((i + 0.5) * 30 - 90) * (Math.PI / 180);
             const labelRadius = 330;
             const x = cx + labelRadius * Math.cos(centerAngle);
@@ -533,7 +535,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 transform={`rotate(${flipText ? rotationDeg + 180 : rotationDeg}, ${x}, ${y})`}
                 style={{ fontFamily: 'Georgia, serif', cursor: 'pointer' }}
                 className="month-label"
-                onClick={() => speak(m)}
+                onClick={() => speak(m, language)}
               >
                 {m}
               </text>
@@ -622,7 +624,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                     <tspan fill="#7f8c8d" fontSize="18"> </tspan>
                   )}
                   {selectedUnits.months && (
-                    <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{MONTHS_NO[month].toLowerCase()}</tspan>
+                    <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{months[month].toLowerCase()}</tspan>
                   )}
                   {(selectedUnits.days || selectedUnits.months) && selectedUnits.year && (
                     <tspan fill="#7f8c8d" fontSize="18"> </tspan>
@@ -649,7 +651,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
       {/* Draggable Palettes */}
       <Palette
         id="size"
-        title="Størrelse"
+        title={t('clock.size')}
         position={palettePositions.size}
         onPositionChange={handlePalettePositionChange}
         zIndex={paletteZIndexes.size}
@@ -670,7 +672,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
       <Palette
         id="datetime"
-        title="Dato & tid"
+        title={t('clock.dateTime')}
         position={palettePositions.datetime}
         onPositionChange={handlePalettePositionChange}
         zIndex={paletteZIndexes.datetime}
@@ -687,7 +689,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
               <span style={{ color: '#7f8c8d' }}> – </span>
               <span style={{ color: COLORS.days }}>{day}.</span>
               <span style={{ color: '#7f8c8d' }}> </span>
-              <span style={{ color: COLORS.months }}>{MONTHS_NO[month].toLowerCase()}</span>
+              <span style={{ color: COLORS.months }}>{months[month].toLowerCase()}</span>
               <span style={{ color: '#7f8c8d' }}> </span>
               <span style={{ color: COLORS.year }}>{year}</span>
             </div>
@@ -695,7 +697,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
               <span style={{ color: COLORS.hours, fontWeight: '600' }}>{String(hours).padStart(2, '0')}</span>
               <span style={{ color: '#7f8c8d' }}>:</span>
               <span style={{ color: COLORS.minutes, fontWeight: '600' }}>{String(minutes).padStart(2, '0')}</span>
-              <span style={{ color: '#7f8c8d' }}> – {timeNoStr}</span>
+              <span style={{ color: '#7f8c8d' }}> – {timeStr}</span>
             </div>
             {isLeapDay && (
               <div style={{
@@ -707,17 +709,17 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 fontWeight: 'bold',
                 fontSize: '14px',
               }}>
-                🎉 Skudddag!
+                🎉 {t('clock.leapDay')}!
               </div>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <SpeakButton onClick={() => speak(dateNoStr)}>
-              Les dato
+            <SpeakButton onClick={() => speak(dateStr, language)}>
+              {t('clock.readDate')}
             </SpeakButton>
-            <SpeakButton onClick={() => speak(timeNoStr)}>
-              Les tid
+            <SpeakButton onClick={() => speak(timeStr, language)}>
+              {t('clock.readTime')}
             </SpeakButton>
           </div>
         </div>
@@ -725,7 +727,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
       <Palette
         id="analog"
-        title="Analog klokke"
+        title={t('clock.analogClock')}
         position={palettePositions.analog}
         onPositionChange={handlePalettePositionChange}
         zIndex={paletteZIndexes.analog}
@@ -833,7 +835,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
       <Palette
         id="controls"
-        title="Kontroller"
+        title={t('clock.controls')}
         position={palettePositions.controls}
         onPositionChange={handlePalettePositionChange}
         zIndex={paletteZIndexes.controls}
@@ -843,12 +845,12 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
           {/* Dato-kontroller - vis hvis ikke enkel modus, eller hvis år/måneder/dager er valgt */}
           {(!simplifiedMode || selectedUnits.year || selectedUnits.months || selectedUnits.days) && (
             <div>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dato</div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('clock.date')}</div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                 {(!simplifiedMode || selectedUnits.year) && (
                   <Stepper
                     value={year}
-                    label="År"
+                    label={t('clock.year')}
                     width="55px"
                     color={COLORS.year}
                     onIncrement={() => adjustYear(1)}
@@ -858,7 +860,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 {(!simplifiedMode || selectedUnits.months) && (
                   <Stepper
                     value={String(month + 1).padStart(2, '0')}
-                    label="Mån"
+                    label={t('clock.month')}
                     width="35px"
                     color={COLORS.months}
                     onIncrement={() => adjustMonth(1)}
@@ -868,7 +870,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 {(!simplifiedMode || selectedUnits.days) && (
                   <Stepper
                     value={String(day).padStart(2, '0')}
-                    label="Dag"
+                    label={t('clock.day')}
                     width="35px"
                     color={COLORS.days}
                     onIncrement={() => adjustDay(1)}
@@ -882,12 +884,12 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
           {/* Tid-kontroller - vis hvis ikke enkel modus, eller hvis timer/minutter/sekunder er valgt */}
           {(!simplifiedMode || selectedUnits.hours || selectedUnits.minutes || selectedUnits.seconds) && (
             <div>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Tid</div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('clock.time')}</div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                 {(!simplifiedMode || selectedUnits.hours) && (
                   <Stepper
                     value={String(hours).padStart(2, '0')}
-                    label="Tim"
+                    label={t('clock.hour')}
                     width="35px"
                     color={COLORS.hours}
                     onIncrement={() => adjustHour(1)}
@@ -897,7 +899,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 {(!simplifiedMode || selectedUnits.minutes) && (
                   <Stepper
                     value={String(minutes).padStart(2, '0')}
-                    label="Min"
+                    label={t('clock.minute')}
                     width="35px"
                     color={COLORS.minutes}
                     onIncrement={() => adjustMinute(1)}
@@ -907,7 +909,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 {(!simplifiedMode || selectedUnits.seconds) && (
                   <Stepper
                     value={String(seconds).padStart(2, '0')}
-                    label="Sek"
+                    label={t('clock.second')}
                     width="35px"
                     color={COLORS.seconds}
                     onIncrement={() => adjustSecond(1)}
@@ -920,7 +922,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button onClick={setToNow}>
-              Nullstill
+              {t('clock.setNow')}
             </button>
             <button
               onClick={() => setIsRunning(!isRunning)}
@@ -931,7 +933,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                   : 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)'
               }}
             >
-              {isRunning ? 'Stopp' : 'Start'}
+              {isRunning ? t('clock.stop') : t('clock.start')}
             </button>
           </div>
         </div>
@@ -939,7 +941,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
       <Palette
         id="legend"
-        title="Forklaring"
+        title={t('clock.legend')}
         position={palettePositions.legend}
         onPositionChange={handlePalettePositionChange}
         zIndex={paletteZIndexes.legend}
@@ -957,7 +959,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 flexShrink: 0,
               }}/>
               <span style={{ color: '#555' }}>
-                År ({year})
+                {t('clock.year')} ({year})
               </span>
             </div>
           )}
@@ -985,13 +987,13 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
                 flexShrink: 0,
               }}/>
               <span style={{ color: '#555' }}>
-                Skudddag (29. feb)
+                {t('clock.leapDayFeb')}
               </span>
             </div>
           )}
           {!leapYear && !simplifiedMode && (
             <div style={{ marginTop: '4px', paddingTop: '8px', borderTop: '1px solid #eee', color: '#999', fontSize: '12px' }}>
-              {year} er ikke et skuddår
+              {year} {t('clock.notLeapYear')}
             </div>
           )}
         </div>

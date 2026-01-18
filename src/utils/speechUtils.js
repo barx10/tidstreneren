@@ -1,9 +1,10 @@
-// Forbedret TTS-modul med optimalisert norsk stemmehåndtering
+// Forbedret TTS-modul med støtte for norsk og engelsk
 // for bedre tilgjengelighet i pedagogiske apper
 
 // Cache for stemmer
 let cachedVoices = [];
 let norwegianVoice = null;
+let englishVoice = null;
 let isInitialized = false;
 
 // Standard TTS-innstillinger optimalisert for barn med autisme
@@ -11,7 +12,6 @@ const defaultSettings = {
   rate: 0.85,      // Litt langsommere for bedre forståelse
   pitch: 1.0,      // Normal tonehøyde
   volume: 1.0,     // Full volum
-  lang: 'nb-NO',   // Norsk bokmål
 };
 
 // Brukerinnstillinger (kan overstyres)
@@ -19,19 +19,27 @@ let userSettings = { ...defaultSettings };
 
 // Prioritert liste over norske stemmer (beste først)
 const norwegianVoicePriority = [
-  // Premium/Neural stemmer (høyest kvalitet)
-  'Microsoft Iselin Online',   // Windows neural
-  'Google norsk',              // Google
-  'Nora',                      // Apple neural
-  'Henrik',                    // Apple neural
-  // Standard stemmer
-  'Microsoft Iselin',          // Windows standard
+  'Microsoft Iselin Online',
+  'Google norsk',
+  'Nora',
+  'Henrik',
+  'Microsoft Iselin',
   'Iselin',
   'Nora (Enhanced)',
   'Henrik (Enhanced)',
-  // Fallback patterns
   'Norwegian',
   'norsk',
+];
+
+// Prioritert liste over engelske stemmer
+const englishVoicePriority = [
+  'Microsoft Zira Online',
+  'Microsoft David Online',
+  'Google US English',
+  'Samantha',
+  'Daniel',
+  'Karen',
+  'English',
 ];
 
 /**
@@ -48,27 +56,25 @@ export function initVoices() {
 
     const loadVoices = () => {
       cachedVoices = window.speechSynthesis.getVoices();
-      norwegianVoice = findBestNorwegianVoice();
+      norwegianVoice = findBestVoice('no');
+      englishVoice = findBestVoice('en');
       isInitialized = true;
 
       if (norwegianVoice) {
         console.log(`Norsk stemme funnet: ${norwegianVoice.name} (${norwegianVoice.lang})`);
-      } else {
-        console.warn('Ingen norsk stemme funnet, bruker standard');
+      }
+      if (englishVoice) {
+        console.log(`English voice found: ${englishVoice.name} (${englishVoice.lang})`);
       }
 
       resolve(true);
     };
 
-    // Sjekk om stemmer allerede er lastet
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
       loadVoices();
     } else {
-      // Vent på at stemmer lastes
       window.speechSynthesis.onvoiceschanged = loadVoices;
-
-      // Timeout fallback (noen nettlesere trenger dette)
       setTimeout(() => {
         if (!isInitialized) {
           loadVoices();
@@ -79,47 +85,55 @@ export function initVoices() {
 }
 
 /**
- * Finn den beste tilgjengelige norske stemmen
+ * Finn den beste tilgjengelige stemmen for et språk
+ * @param {string} lang - 'no' eller 'en'
  * @returns {SpeechSynthesisVoice|null}
  */
-function findBestNorwegianVoice() {
+function findBestVoice(lang) {
   if (cachedVoices.length === 0) return null;
 
-  // Filtrer ut norske stemmer
-  const norwegianVoices = cachedVoices.filter(
-    voice => voice.lang.startsWith('nb') ||
-             voice.lang.startsWith('no') ||
-             voice.lang === 'nn-NO'
-  );
+  let voices;
+  let priority;
 
-  if (norwegianVoices.length === 0) return null;
+  if (lang === 'no') {
+    voices = cachedVoices.filter(
+      voice => voice.lang.startsWith('nb') ||
+               voice.lang.startsWith('no') ||
+               voice.lang === 'nn-NO'
+    );
+    priority = norwegianVoicePriority;
+  } else {
+    voices = cachedVoices.filter(
+      voice => voice.lang.startsWith('en')
+    );
+    priority = englishVoicePriority;
+  }
+
+  if (voices.length === 0) return null;
 
   // Sorter etter prioritet
-  for (const preferredName of norwegianVoicePriority) {
-    const match = norwegianVoices.find(
+  for (const preferredName of priority) {
+    const match = voices.find(
       voice => voice.name.toLowerCase().includes(preferredName.toLowerCase())
     );
     if (match) return match;
   }
 
-  // Foretrekk lokale stemmer over nettverksbaserte (for hastighet)
-  const localVoice = norwegianVoices.find(v => v.localService);
+  // Foretrekk lokale stemmer
+  const localVoice = voices.find(v => v.localService);
   if (localVoice) return localVoice;
 
-  // Returner første tilgjengelige
-  return norwegianVoices[0];
+  return voices[0];
 }
 
 /**
- * Snakk ut tekst med norsk stemme
+ * Snakk ut tekst
  * @param {string} text - Teksten som skal leses opp
+ * @param {string} lang - Språk ('no' eller 'en')
  * @param {Object} options - Valgfrie innstillinger
- * @param {Function} options.onStart - Callback når tale starter
- * @param {Function} options.onEnd - Callback når tale er ferdig
- * @param {Function} options.onError - Callback ved feil
  * @returns {SpeechSynthesisUtterance|null}
  */
-export function speak(text, options = {}) {
+export function speak(text, lang = 'no', options = {}) {
   if (!('speechSynthesis' in window)) {
     console.warn('Speech synthesis ikke støttet i denne nettleseren');
     options.onError?.('TTS ikke støttet');
@@ -135,20 +149,23 @@ export function speak(text, options = {}) {
 
   const utterance = new SpeechSynthesisUtterance(text);
 
-  // Bruk innstillinger
-  utterance.lang = userSettings.lang;
+  // Sett språk
+  utterance.lang = lang === 'no' ? 'nb-NO' : 'en-US';
   utterance.rate = options.rate ?? userSettings.rate;
   utterance.pitch = options.pitch ?? userSettings.pitch;
   utterance.volume = options.volume ?? userSettings.volume;
 
-  // Bruk cached norsk stemme hvis tilgjengelig
-  if (norwegianVoice) {
-    utterance.voice = norwegianVoice;
+  // Bruk cached stemme
+  const voice = lang === 'no' ? norwegianVoice : englishVoice;
+  if (voice) {
+    utterance.voice = voice;
   } else {
-    // Fallback: prøv å finne stemme på nytt
+    // Fallback
     const voices = window.speechSynthesis.getVoices();
     const fallbackVoice = voices.find(
-      voice => voice.lang.startsWith('nb') || voice.lang.startsWith('no')
+      v => lang === 'no'
+        ? (v.lang.startsWith('nb') || v.lang.startsWith('no'))
+        : v.lang.startsWith('en')
     );
     if (fallbackVoice) {
       utterance.voice = fallbackVoice;
@@ -156,14 +173,8 @@ export function speak(text, options = {}) {
   }
 
   // Event handlers
-  utterance.onstart = () => {
-    options.onStart?.();
-  };
-
-  utterance.onend = () => {
-    options.onEnd?.();
-  };
-
+  utterance.onstart = () => options.onStart?.();
+  utterance.onend = () => options.onEnd?.();
   utterance.onerror = (event) => {
     console.error('TTS feil:', event.error);
     options.onError?.(event.error);
@@ -199,46 +210,26 @@ export function hasNorwegianVoice() {
 }
 
 /**
- * Hent info om nåværende stemme
- * @returns {Object|null}
+ * Sjekk om engelsk stemme er tilgjengelig
+ * @returns {boolean}
  */
-export function getCurrentVoiceInfo() {
-  if (!norwegianVoice) return null;
-  return {
-    name: norwegianVoice.name,
-    lang: norwegianVoice.lang,
-    localService: norwegianVoice.localService,
-  };
+export function hasEnglishVoice() {
+  return englishVoice !== null;
 }
 
 /**
- * Hent alle tilgjengelige norske stemmer
- * @returns {Array}
+ * Hent info om nåværende stemme
+ * @param {string} lang - 'no' eller 'en'
+ * @returns {Object|null}
  */
-export function getAvailableNorwegianVoices() {
-  return cachedVoices.filter(
-    voice => voice.lang.startsWith('nb') ||
-             voice.lang.startsWith('no') ||
-             voice.lang === 'nn-NO'
-  ).map(voice => ({
+export function getCurrentVoiceInfo(lang = 'no') {
+  const voice = lang === 'no' ? norwegianVoice : englishVoice;
+  if (!voice) return null;
+  return {
     name: voice.name,
     lang: voice.lang,
     localService: voice.localService,
-  }));
-}
-
-/**
- * Sett hvilken stemme som skal brukes
- * @param {string} voiceName - Navnet på stemmen
- * @returns {boolean} true hvis stemmen ble funnet og satt
- */
-export function setVoice(voiceName) {
-  const voice = cachedVoices.find(v => v.name === voiceName);
-  if (voice) {
-    norwegianVoice = voice;
-    return true;
-  }
-  return false;
+  };
 }
 
 /**
@@ -265,55 +256,68 @@ export function resetSettings() {
 }
 
 /**
- * Snakk tall på norsk (spesialhåndtering)
- * @param {number} number - Tallet som skal leses
- */
-export function speakNumber(number) {
-  // Norsk talluttale
-  const text = number.toString();
-  speak(text);
-}
-
-/**
- * Snakk klokkeslett på norsk
+ * Snakk klokkeslett
  * @param {number} hours - Timer (0-23)
  * @param {number} minutes - Minutter (0-59)
+ * @param {string} lang - Språk ('no' eller 'en')
  */
-export function speakTime(hours, minutes) {
+export function speakTime(hours, minutes, lang = 'no') {
   let text;
 
-  if (minutes === 0) {
-    text = `klokken ${hours}`;
-  } else if (minutes === 30) {
-    text = `halv ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-  } else if (minutes === 15) {
-    text = `kvart over ${hours}`;
-  } else if (minutes === 45) {
-    text = `kvart på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-  } else if (minutes < 30) {
-    text = `${minutes} over ${hours}`;
+  if (lang === 'no') {
+    if (minutes === 0) {
+      text = `klokken ${hours}`;
+    } else if (minutes === 30) {
+      text = `halv ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
+    } else if (minutes === 15) {
+      text = `kvart over ${hours}`;
+    } else if (minutes === 45) {
+      text = `kvart på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
+    } else if (minutes < 30) {
+      text = `${minutes} over ${hours}`;
+    } else {
+      text = `${60 - minutes} på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
+    }
   } else {
-    text = `${60 - minutes} på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
+    if (minutes === 0) {
+      text = `${hours} o'clock`;
+    } else if (minutes === 30) {
+      text = `half past ${hours}`;
+    } else if (minutes === 15) {
+      text = `quarter past ${hours}`;
+    } else if (minutes === 45) {
+      text = `quarter to ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
+    } else {
+      text = `${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+    }
   }
 
-  speak(text);
+  speak(text, lang);
 }
 
 /**
- * Snakk dato på norsk
+ * Snakk dato
  * @param {Date} date - Datoen som skal leses
+ * @param {string} lang - Språk ('no' eller 'en')
  */
-export function speakDate(date) {
-  const days = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
-  const months = [
-    'januar', 'februar', 'mars', 'april', 'mai', 'juni',
-    'juli', 'august', 'september', 'oktober', 'november', 'desember'
-  ];
+export function speakDate(date, lang = 'no') {
+  let text;
 
-  const dayName = days[date.getDay()];
-  const dayNumber = date.getDate();
-  const monthName = months[date.getMonth()];
+  if (lang === 'no') {
+    const days = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
+    const months = [
+      'januar', 'februar', 'mars', 'april', 'mai', 'juni',
+      'juli', 'august', 'september', 'oktober', 'november', 'desember'
+    ];
+    text = `${days[date.getDay()]} ${date.getDate()}. ${months[date.getMonth()]}`;
+  } else {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    text = `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
+  }
 
-  const text = `${dayName} ${dayNumber}. ${monthName}`;
-  speak(text);
+  speak(text, lang);
 }
