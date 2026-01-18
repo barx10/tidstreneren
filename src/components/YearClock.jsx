@@ -94,12 +94,11 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime }) {
   const { t, language } = useLanguage();
   const months = t('months');
   const [clockSize, setClockSize] = useState(700);
   const [isRunning, setIsRunning] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragging, setIsDragging] = useState(null);
   const [isDraggingHand, setIsDraggingHand] = useState(null);
   const svgRef = useRef(null);
@@ -237,8 +236,10 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
     radius: 80 + index * 60, // Start ved 80, øk med 60 per ring
   }));
 
-  const cx = clockSize / 2;
-  const cy = clockSize / 2;
+  // Fast viewBox-størrelse for skalering
+  const viewBoxSize = 700;
+  const cx = viewBoxSize / 2;
+  const cy = viewBoxSize / 2;
 
   // Angle calculations for analog clock
   const hourAngle = (hours % 12 + minutes / 60) * 30;
@@ -394,7 +395,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
           ref={svgRef}
           width={clockSize}
           height={clockSize}
-          viewBox={`0 0 ${clockSize} ${clockSize}`}
+          viewBox="0 0 700 700"
           style={{ cursor: isDragging ? 'grabbing' : 'default' }}
         >
           <defs>
@@ -537,6 +538,42 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
                 onClick={() => speak(m, language)}
               >
                 {m}
+              </text>
+            );
+          })}
+
+          {/* Labels for alle ringer - plassert over hver ring */}
+          {ringConfig.map((ring) => {
+            const labelMap = {
+              'months': 'måneder',
+              'days': 'dager',
+              'hours': 'timer',
+              'minutes': 'minutter',
+              'seconds': 'sekunder'
+            };
+            
+            const label = labelMap[ring.name];
+            if (!label) return null;
+            
+            // Plasser etiketten over ringen (kl. 12)
+            const angle = -90 * (Math.PI / 180); // Rett opp (kl. 12)
+            const labelRadius = ring.radius + 12; // Litt utenfor ringen
+            const labelX = cx + labelRadius * Math.cos(angle);
+            const labelY = cy + labelRadius * Math.sin(angle);
+            
+            return (
+              <text
+                key={`label-${ring.name}`}
+                x={labelX}
+                y={labelY}
+                fill={ring.color}
+                fontSize="13"
+                fontWeight="600"
+                textAnchor="middle"
+                dominantBaseline="auto"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                {label}
               </text>
             );
           })}

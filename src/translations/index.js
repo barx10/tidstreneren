@@ -9,6 +9,8 @@ export const translations = {
       exercises: 'Øvelser',
       countdown: 'Nedtelling',
       myDay: 'Min dag',
+      calendar: 'Kalender',
+      about: 'Om',
     },
 
     // HelpBox
@@ -295,6 +297,8 @@ export const translations = {
       exercises: 'Exercises',
       countdown: 'Countdown',
       myDay: 'My day',
+      calendar: 'Calendar',
+      about: 'About',
     },
 
     // HelpBox
