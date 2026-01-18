@@ -5,6 +5,7 @@ import SimplifiedMode from './components/SimplifiedMode';
 import PracticeMode from './components/PracticeMode';
 import CountdownTimer from './components/CountdownTimer';
 import DailyRoutine from './components/DailyRoutine';
+import AboutModal from './components/AboutModal';
 
 function App() {
   const [showHelp, setShowHelp] = useState(true);
@@ -12,6 +13,7 @@ function App() {
   const [showPractice, setShowPractice] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [showRoutine, setShowRoutine] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   // Valgte enheter for enkel modus
   const [selectedUnits, setSelectedUnits] = useState({
@@ -86,6 +88,13 @@ function App() {
         >
           Min dag
         </button>
+
+        <button
+          onClick={() => setShowAbout(true)}
+          style={buttonStyle(false)}
+        >
+          Om
+        </button>
       </div>
 
       {/* Hjelpeboks */}
@@ -113,6 +122,10 @@ function App() {
 
       {showRoutine && (
         <DailyRoutine onClose={() => setShowRoutine(false)} />
+      )}
+
+      {showAbout && (
+        <AboutModal onClose={() => setShowAbout(false)} />
       )}
     </div>
   );

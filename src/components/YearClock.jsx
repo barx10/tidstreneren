@@ -235,8 +235,10 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
     radius: 80 + index * 60, // Start ved 80, øk med 60 per ring
   }));
 
-  const cx = clockSize / 2;
-  const cy = clockSize / 2;
+  // Fast viewBox-størrelse for skalering
+  const viewBoxSize = 700;
+  const cx = viewBoxSize / 2;
+  const cy = viewBoxSize / 2;
 
   // Angle calculations for analog clock
   const hourAngle = (hours % 12 + minutes / 60) * 30;
@@ -392,7 +394,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
           ref={svgRef}
           width={clockSize}
           height={clockSize}
-          viewBox={`0 0 ${clockSize} ${clockSize}`}
+          viewBox="0 0 700 700"
           style={{ cursor: isDragging ? 'grabbing' : 'default' }}
         >
           <defs>
@@ -539,12 +541,10 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
             );
           })}
 
-          {/* Labels for days, hours, minutes, seconds - plassert i bue over hver ring */}
+          {/* Labels for alle ringer - plassert over hver ring */}
           {ringConfig.map((ring) => {
-            // Vis bare etiketter for disse enhetene (ikke måneder - de har egne labels rundt)
-            if (ring.name === 'months') return null;
-            
             const labelMap = {
+              'months': 'måneder',
               'days': 'dager',
               'hours': 'timer',
               'minutes': 'minutter',
@@ -554,7 +554,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
             const label = labelMap[ring.name];
             if (!label) return null;
             
-            // Plasser etiketten over ringen, litt til venstre for toppen
+            // Plasser etiketten over ringen (kl. 12)
             const angle = -90 * (Math.PI / 180); // Rett opp (kl. 12)
             const labelRadius = ring.radius + 12; // Litt utenfor ringen
             const labelX = cx + labelRadius * Math.cos(angle);
@@ -921,7 +921,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button onClick={setToNow}>
-              Sett nå
+              Nullstill
             </button>
             <button
               onClick={() => setIsRunning(!isRunning)}
