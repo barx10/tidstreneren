@@ -25,7 +25,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
     <div style={{
       position: 'fixed',
       right: 20,
-      top: 80,
+      top: 140,
       width: '280px',
       background: 'white',
       borderRadius: '12px',

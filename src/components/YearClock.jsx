@@ -265,6 +265,15 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
 
     switch (isDragging) {
       case 'months':
+        // Håndter år-overgang ved dragging over desember/januar-grensen
+        const currentMonth = newDate.getMonth();
+        if (currentMonth >= 10 && newValue <= 2) {
+          // Drar fra desember-området til januar-området -> øk året
+          newDate.setFullYear(newDate.getFullYear() + 1);
+        } else if (currentMonth <= 2 && newValue >= 10) {
+          // Drar fra januar-området til desember-området -> reduser året
+          newDate.setFullYear(newDate.getFullYear() - 1);
+        }
         newDate.setMonth(newValue);
         break;
       case 'days':
