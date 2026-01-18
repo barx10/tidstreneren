@@ -511,8 +511,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
             </>
           )}
 
-          {/* Month labels - kun i normal modus */}
-          {!simplifiedMode && MONTHS_NO.map((m, i) => {
+          {/* Month labels - vis i normal modus, eller i enkel modus når måneder/år er valgt */}
+          {(!simplifiedMode || selectedUnits.months || selectedUnits.year) && MONTHS_NO.map((m, i) => {
             const centerAngle = ((i + 0.5) * 30 - 90) * (Math.PI / 180);
             const labelRadius = 330;
             const x = cx + labelRadius * Math.cos(centerAngle);
