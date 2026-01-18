@@ -10,6 +10,7 @@ const COLORS = {
 
 function HelpBox() {
   const [activeTab, setActiveTab] = useState('hvordan');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const tabs = [
     { id: 'hvordan', label: 'Hvordan bruke' },
@@ -37,54 +38,86 @@ function HelpBox() {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         padding: '16px 20px',
         color: 'white',
-      }}>
-        <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>
-          Hjelpeguide
-        </h2>
-        <p style={{ fontSize: '12px', margin: '4px 0 0 0', opacity: 0.9 }}>
-          Lær å forstå tid på en enkel måte
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div style={{
         display: 'flex',
-        flexWrap: 'wrap',
-        borderBottom: '2px solid #f0f0f0',
-        background: '#fafafa',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        borderRadius: isCollapsed ? '16px' : '16px 16px 0 0',
       }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              flex: '1 1 auto',
-              minWidth: '60px',
-              padding: '10px 6px',
-              border: 'none',
-              background: activeTab === tab.id ? 'white' : 'transparent',
-              color: activeTab === tab.id ? '#667eea' : '#7f8c8d',
-              fontSize: '10px',
-              fontWeight: activeTab === tab.id ? '600' : '400',
-              cursor: 'pointer',
-              borderBottom: activeTab === tab.id ? '2px solid #667eea' : 'none',
-              marginBottom: activeTab === tab.id ? '-2px' : '0',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <div>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>
+            Hjelpeguide
+          </h2>
+          {!isCollapsed && (
+            <p style={{ fontSize: '12px', margin: '4px 0 0 0', opacity: 0.9 }}>
+              Lær å forstå tid på en enkel måte
+            </p>
+          )}
+        </div>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{
+            background: 'rgba(255,255,255,0.2)',
+            border: 'none',
+            borderRadius: '4px',
+            color: '#fff',
+            cursor: 'pointer',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            flexShrink: 0,
+            marginLeft: '12px',
+          }}
+          title={isCollapsed ? 'Utvid' : 'Minimer'}
+        >
+          {isCollapsed ? '+' : '−'}
+        </button>
       </div>
 
-      {/* Content */}
-      <div style={{
-        padding: '20px',
-        maxHeight: '450px',
-        overflowY: 'auto',
-        fontSize: '14px',
-        lineHeight: '1.6',
-        color: '#2c3e50',
-      }}>
+      {!isCollapsed && (
+        <>
+          {/* Tabs */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            borderBottom: '2px solid #f0f0f0',
+            background: '#fafafa',
+          }}>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  flex: '1 1 auto',
+                  minWidth: '60px',
+                  padding: '10px 6px',
+                  border: 'none',
+                  background: activeTab === tab.id ? 'white' : 'transparent',
+                  color: activeTab === tab.id ? '#667eea' : '#7f8c8d',
+                  fontSize: '10px',
+                  fontWeight: activeTab === tab.id ? '600' : '400',
+                  cursor: 'pointer',
+                  borderBottom: activeTab === tab.id ? '2px solid #667eea' : 'none',
+                  marginBottom: activeTab === tab.id ? '-2px' : '0',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div style={{
+            padding: '20px',
+            maxHeight: '450px',
+            overflowY: 'auto',
+            fontSize: '14px',
+            lineHeight: '1.6',
+            color: '#2c3e50',
+          }}>
         {activeTab === 'hvordan' && (
           <div>
             <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#667eea' }}>
@@ -516,9 +549,11 @@ function HelpBox() {
                 Alle lærer i sitt eget tempo. Det er helt greit å bruke lang tid. Det viktigste er at du utforsker og har det gøy!
               </p>
             </div>
+            </div>
+          )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }

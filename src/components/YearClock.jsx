@@ -10,6 +10,7 @@ const MONTHS_NO = [
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const COLORS = {
+  year: '#16a085',
   months: '#e67e22',
   days: '#27ae60',
   hours: '#2980b9',
@@ -554,7 +555,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
           </text>
 
           {/* Center date display */}
-          {(simplifiedMode ? (selectedUnits.months || selectedUnits.days) : true) && (
+          {(simplifiedMode ? (selectedUnits.year || selectedUnits.months || selectedUnits.days) : true) && (
             <text x={cx} y={cy + 20} textAnchor="middle" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
               {simplifiedMode ? (
                 // I enkel modus: vis kun valgte datoenheter
@@ -568,11 +569,18 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
                   {selectedUnits.months && (
                     <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{MONTHS_NO[month].toLowerCase()}</tspan>
                   )}
+                  {(selectedUnits.days || selectedUnits.months) && selectedUnits.year && (
+                    <tspan fill="#7f8c8d" fontSize="18"> </tspan>
+                  )}
+                  {selectedUnits.year && (
+                    <tspan fill={COLORS.year} fontSize="18" fontWeight="600">{year}</tspan>
+                  )}
                 </>
               ) : (
                 // I full modus: vis alt
                 <>
-                  <tspan fill="#7f8c8d" fontSize="18">{year}-</tspan>
+                  <tspan fill={COLORS.year} fontSize="18" fontWeight="600">{year}</tspan>
+                  <tspan fill="#7f8c8d" fontSize="18">-</tspan>
                   <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{String(month + 1).padStart(2, '0')}</tspan>
                   <tspan fill="#7f8c8d" fontSize="18">-</tspan>
                   <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{String(day).padStart(2, '0')}</tspan>
@@ -616,7 +624,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '18px', marginBottom: '6px' }}>
-              <span style={{ color: '#7f8c8d' }}>{year}-</span>
+              <span style={{ color: COLORS.year, fontWeight: '600' }}>{year}</span>
+              <span style={{ color: '#7f8c8d' }}>-</span>
               <span style={{ color: COLORS.months, fontWeight: '600' }}>{String(month + 1).padStart(2, '0')}</span>
               <span style={{ color: '#7f8c8d' }}>-</span>
               <span style={{ color: COLORS.days, fontWeight: '600' }}>{String(day).padStart(2, '0')}</span>
@@ -624,7 +633,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
               <span style={{ color: COLORS.days }}>{day}.</span>
               <span style={{ color: '#7f8c8d' }}> </span>
               <span style={{ color: COLORS.months }}>{MONTHS_NO[month].toLowerCase()}</span>
-              <span style={{ color: '#7f8c8d' }}> {year}</span>
+              <span style={{ color: '#7f8c8d' }}> </span>
+              <span style={{ color: COLORS.year }}>{year}</span>
             </div>
             <div style={{ fontSize: '18px' }}>
               <span style={{ color: COLORS.hours, fontWeight: '600' }}>{String(hours).padStart(2, '0')}</span>
@@ -775,16 +785,17 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
         onFocus={handlePaletteFocus}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Dato-kontroller - vis hvis ikke enkel modus, eller hvis måneder/dager er valgt */}
-          {(!simplifiedMode || selectedUnits.months || selectedUnits.days) && (
+          {/* Dato-kontroller - vis hvis ikke enkel modus, eller hvis år/måneder/dager er valgt */}
+          {(!simplifiedMode || selectedUnits.year || selectedUnits.months || selectedUnits.days) && (
             <div>
               <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dato</div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                {!simplifiedMode && (
+                {(!simplifiedMode || selectedUnits.year) && (
                   <Stepper
                     value={year}
                     label="År"
                     width="55px"
+                    color={COLORS.year}
                     onIncrement={() => adjustYear(1)}
                     onDecrement={() => adjustYear(-1)}
                   />
@@ -880,6 +891,21 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
         onFocus={handlePaletteFocus}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+          {/* År - vises alltid i full modus, eller når valgt i enkel modus */}
+          {(!simplifiedMode || selectedUnits.year) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '14px',
+                height: '14px',
+                borderRadius: '3px',
+                background: COLORS.year,
+                flexShrink: 0,
+              }}/>
+              <span style={{ color: '#555' }}>
+                År ({year})
+              </span>
+            </div>
+          )}
           {ringConfig.map(ring => (
             <div key={ring.name} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
