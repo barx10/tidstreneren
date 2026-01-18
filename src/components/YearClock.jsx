@@ -106,6 +106,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
   const [isDraggingHand, setIsDraggingHand] = useState(null);
   const svgRef = useRef(null);
   const analogClockRef = useRef(null);
+  const lastDraggedMonth = useRef(null);
 
   const [palettePositions, setPalettePositions] = useState({
     size: { x: 20, y: 500 },
@@ -246,6 +247,9 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
   const handleMouseDown = (ringName, e) => {
     e.preventDefault();
     setIsDragging(ringName);
+    if (ringName === 'months') {
+      lastDraggedMonth.current = currentTime.getMonth();
+    }
   };
 
   const handleMouseMove = useCallback((e) => {
@@ -266,15 +270,19 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
     switch (isDragging) {
       case 'months':
         // Håndter år-overgang ved dragging over desember/januar-grensen
-        const currentMonth = newDate.getMonth();
-        if (currentMonth >= 10 && newValue <= 2) {
-          // Drar fra desember-området til januar-området -> øk året
-          newDate.setFullYear(newDate.getFullYear() + 1);
-        } else if (currentMonth <= 2 && newValue >= 10) {
-          // Drar fra januar-området til desember-området -> reduser året
-          newDate.setFullYear(newDate.getFullYear() - 1);
+        const prevMonth = lastDraggedMonth.current;
+        if (prevMonth !== null) {
+          // Sjekk om vi krysser desember/januar-grensen
+          if (prevMonth >= 10 && newValue <= 2) {
+            // Drar fra desember-området til januar-området -> øk året
+            newDate.setFullYear(newDate.getFullYear() + 1);
+          } else if (prevMonth <= 2 && newValue >= 10) {
+            // Drar fra januar-området til desember-området -> reduser året
+            newDate.setFullYear(newDate.getFullYear() - 1);
+          }
         }
         newDate.setMonth(newValue);
+        lastDraggedMonth.current = newValue;
         break;
       case 'days':
         newDate.setDate(newValue + 1);
@@ -295,6 +303,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
+    lastDraggedMonth.current = null;
   }, []);
 
   useEffect(() => {
@@ -502,8 +511,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
             </>
           )}
 
-          {/* Month labels - kun i normal modus */}
-          {!simplifiedMode && MONTHS_NO.map((m, i) => {
+          {/* Month labels - vis i normal modus, eller i enkel modus når måneder/år er valgt */}
+          {(!simplifiedMode || selectedUnits.months || selectedUnits.year) && MONTHS_NO.map((m, i) => {
             const centerAngle = ((i + 0.5) * 30 - 90) * (Math.PI / 180);
             const labelRadius = 330;
             const x = cx + labelRadius * Math.cos(centerAngle);
