@@ -94,10 +94,10 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false }) {
   const { t, language } = useLanguage();
   const months = t('months');
-  const [clockSize, setClockSize] = useState(700);
+  const [clockSize, setClockSize] = useState(hidePalettes ? 600 : 700);
   const [isRunning, setIsRunning] = useState(true);
   const [isDragging, setIsDragging] = useState(null);
   const [isDraggingHand, setIsDraggingHand] = useState(null);
@@ -648,7 +648,9 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
         </svg>
       </div>
 
-      {/* Draggable Palettes */}
+      {/* Draggable Palettes - hidden when sidebar is used */}
+      {!hidePalettes && (
+      <>
       <Palette
         id="size"
         title={t('clock.size')}
@@ -998,6 +1000,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
           )}
         </div>
       </Palette>
+      </>
+      )}
     </div>
   );
 }
