@@ -98,10 +98,9 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime }) {
   const [clockSize, setClockSize] = useState(700);
   const [isRunning, setIsRunning] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragging, setIsDragging] = useState(null);
   const [isDraggingHand, setIsDraggingHand] = useState(null);
   const svgRef = useRef(null);

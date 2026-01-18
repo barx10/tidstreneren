@@ -6,6 +6,7 @@ import PracticeMode from './components/PracticeMode';
 import CountdownTimer from './components/CountdownTimer';
 import DailyRoutine from './components/DailyRoutine';
 import AboutModal from './components/AboutModal';
+import Calendar from './components/Calendar';
 
 function App() {
   const [showHelp, setShowHelp] = useState(true);
@@ -14,6 +15,8 @@ function App() {
   const [showCountdown, setShowCountdown] = useState(false);
   const [showRoutine, setShowRoutine] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Valgte enheter for enkel modus
   const [selectedUnits, setSelectedUnits] = useState({
@@ -90,6 +93,13 @@ function App() {
         </button>
 
         <button
+          onClick={() => setShowCalendar(true)}
+          style={buttonStyle(false)}
+        >
+          Kalender
+        </button>
+
+        <button
           onClick={() => setShowAbout(true)}
           style={buttonStyle(false)}
         >
@@ -109,7 +119,12 @@ function App() {
       )}
 
       {/* Hovedklokke */}
-      <YearClock simplifiedMode={simplifiedMode} selectedUnits={selectedUnits} />
+      <YearClock 
+        simplifiedMode={simplifiedMode} 
+        selectedUnits={selectedUnits}
+        currentTime={currentTime}
+        setCurrentTime={setCurrentTime}
+      />
 
       {/* Modaler */}
       {showPractice && (
@@ -126,6 +141,14 @@ function App() {
 
       {showAbout && (
         <AboutModal onClose={() => setShowAbout(false)} />
+      )}
+
+      {showCalendar && (
+        <Calendar 
+          onClose={() => setShowCalendar(false)}
+          currentDate={currentTime}
+          onDateSelect={setCurrentTime}
+        />
       )}
     </div>
   );
