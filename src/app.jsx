@@ -13,6 +13,15 @@ function App() {
   const [showCountdown, setShowCountdown] = useState(false);
   const [showRoutine, setShowRoutine] = useState(false);
 
+  // Valgte enheter for enkel modus
+  const [selectedUnits, setSelectedUnits] = useState({
+    months: false,
+    days: false,
+    hours: true,
+    minutes: true,
+    seconds: false,
+  });
+
   const buttonStyle = (active) => ({
     padding: '12px 16px',
     background: active
@@ -81,11 +90,16 @@ function App() {
       {/* Hjelpeboks */}
       {showHelp && <HelpBox />}
 
-      {/* Forenklet modus info */}
-      {simplifiedMode && <SimplifiedMode />}
+      {/* Forenklet modus info med enhetsvalg */}
+      {simplifiedMode && (
+        <SimplifiedMode
+          selectedUnits={selectedUnits}
+          setSelectedUnits={setSelectedUnits}
+        />
+      )}
 
       {/* Hovedklokke */}
-      <YearClock simplifiedMode={simplifiedMode} />
+      <YearClock simplifiedMode={simplifiedMode} selectedUnits={selectedUnits} />
 
       {/* Modaler */}
       {showPractice && (

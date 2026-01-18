@@ -97,7 +97,7 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
   const [clockSize, setClockSize] = useState(700);
   const [isRunning, setIsRunning] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -213,17 +213,25 @@ function YearClock({ simplifiedMode = false }) {
     setCurrentTime(new Date());
   };
 
-  // Ring configuration
-  const ringConfig = simplifiedMode ? [
-    { name: 'hours', count: 24, value: hours, color: COLORS.hours, radius: 200, label: 'Timer (24)' },
-    { name: 'minutes', count: 60, value: minutes, color: COLORS.minutes, radius: 260, label: 'Minutter (60)' },
-  ] : [
-    { name: 'months', count: 12, value: month, color: COLORS.months, radius: 80, label: 'Måneder (12)' },
-    { name: 'days', count: daysInCurrentMonth, value: day - 1, color: COLORS.days, radius: 140, label: `Dager (${daysInCurrentMonth})` },
-    { name: 'hours', count: 24, value: hours, color: COLORS.hours, radius: 200, label: 'Timer (24)' },
-    { name: 'minutes', count: 60, value: minutes, color: COLORS.minutes, radius: 260, label: 'Minutter (60)' },
-    { name: 'seconds', count: 60, value: seconds, color: COLORS.seconds, radius: 320, label: 'Sekunder (60)' },
+  // Ring configuration - alle tilgjengelige ringer
+  const allRings = [
+    { name: 'months', count: 12, value: month, color: COLORS.months, label: 'Måneder (12)' },
+    { name: 'days', count: daysInCurrentMonth, value: day - 1, color: COLORS.days, label: `Dager (${daysInCurrentMonth})` },
+    { name: 'hours', count: 24, value: hours, color: COLORS.hours, label: 'Timer (24)' },
+    { name: 'minutes', count: 60, value: minutes, color: COLORS.minutes, label: 'Minutter (60)' },
+    { name: 'seconds', count: 60, value: seconds, color: COLORS.seconds, label: 'Sekunder (60)' },
   ];
+
+  // Filtrer ringer basert på modus
+  const activeRings = simplifiedMode
+    ? allRings.filter(ring => selectedUnits[ring.name])
+    : allRings;
+
+  // Beregn dynamisk radius basert på antall aktive ringer
+  const ringConfig = activeRings.map((ring, index) => ({
+    ...ring,
+    radius: 80 + index * 60, // Start ved 80, øk med 60 per ring
+  }));
 
   const cx = clockSize / 2;
   const cy = clockSize / 2;
@@ -514,11 +522,31 @@ function YearClock({ simplifiedMode = false }) {
 
           {/* Center time display */}
           <text x={cx} y={cy - 16} textAnchor="middle" fontWeight="bold" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
-            <tspan fill={COLORS.hours} fontSize="32">{String(hours).padStart(2, '0')}</tspan>
-            <tspan fill="#7f8c8d" fontSize="32">:</tspan>
-            <tspan fill={COLORS.minutes} fontSize="32">{String(minutes).padStart(2, '0')}</tspan>
-            {!simplifiedMode && (
+            {simplifiedMode ? (
+              // I enkel modus: vis kun valgte enheter
               <>
+                {selectedUnits.hours && (
+                  <tspan fill={COLORS.hours} fontSize="32">{String(hours).padStart(2, '0')}</tspan>
+                )}
+                {selectedUnits.hours && selectedUnits.minutes && (
+                  <tspan fill="#7f8c8d" fontSize="32">:</tspan>
+                )}
+                {selectedUnits.minutes && (
+                  <tspan fill={COLORS.minutes} fontSize="32">{String(minutes).padStart(2, '0')}</tspan>
+                )}
+                {(selectedUnits.hours || selectedUnits.minutes) && selectedUnits.seconds && (
+                  <tspan fill="#7f8c8d" fontSize="32">:</tspan>
+                )}
+                {selectedUnits.seconds && (
+                  <tspan fill={COLORS.seconds} fontSize="32">{String(seconds).padStart(2, '0')}</tspan>
+                )}
+              </>
+            ) : (
+              // I full modus: vis alt
+              <>
+                <tspan fill={COLORS.hours} fontSize="32">{String(hours).padStart(2, '0')}</tspan>
+                <tspan fill="#7f8c8d" fontSize="32">:</tspan>
+                <tspan fill={COLORS.minutes} fontSize="32">{String(minutes).padStart(2, '0')}</tspan>
                 <tspan fill="#7f8c8d" fontSize="32">:</tspan>
                 <tspan fill={COLORS.seconds} fontSize="32">{String(seconds).padStart(2, '0')}</tspan>
               </>
@@ -526,12 +554,30 @@ function YearClock({ simplifiedMode = false }) {
           </text>
 
           {/* Center date display */}
-          {!simplifiedMode && (
+          {(simplifiedMode ? (selectedUnits.months || selectedUnits.days) : true) && (
             <text x={cx} y={cy + 20} textAnchor="middle" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
-              <tspan fill="#7f8c8d" fontSize="18">{year}-</tspan>
-              <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{String(month + 1).padStart(2, '0')}</tspan>
-              <tspan fill="#7f8c8d" fontSize="18">-</tspan>
-              <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{String(day).padStart(2, '0')}</tspan>
+              {simplifiedMode ? (
+                // I enkel modus: vis kun valgte datoenheter
+                <>
+                  {selectedUnits.days && (
+                    <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{day}.</tspan>
+                  )}
+                  {selectedUnits.days && selectedUnits.months && (
+                    <tspan fill="#7f8c8d" fontSize="18"> </tspan>
+                  )}
+                  {selectedUnits.months && (
+                    <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{MONTHS_NO[month].toLowerCase()}</tspan>
+                  )}
+                </>
+              ) : (
+                // I full modus: vis alt
+                <>
+                  <tspan fill="#7f8c8d" fontSize="18">{year}-</tspan>
+                  <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{String(month + 1).padStart(2, '0')}</tspan>
+                  <tspan fill="#7f8c8d" fontSize="18">-</tspan>
+                  <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{String(day).padStart(2, '0')}</tspan>
+                </>
+              )}
             </text>
           )}
         </svg>
@@ -700,7 +746,7 @@ function YearClock({ simplifiedMode = false }) {
             onTouchStart={(e) => startHandDrag('minute', e)}
           />
 
-          {!simplifiedMode && (
+          {(!simplifiedMode || selectedUnits.seconds) && (
             <line
               x1="110"
               y1="110"
@@ -729,72 +775,82 @@ function YearClock({ simplifiedMode = false }) {
         onFocus={handlePaletteFocus}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dato</div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              {!simplifiedMode && (
-                <Stepper
-                  value={year}
-                  label="År"
-                  width="55px"
-                  onIncrement={() => adjustYear(1)}
-                  onDecrement={() => adjustYear(-1)}
-                />
-              )}
-              {!simplifiedMode && (
-                <Stepper
-                  value={String(month + 1).padStart(2, '0')}
-                  label="Mån"
-                  width="35px"
-                  color={COLORS.months}
-                  onIncrement={() => adjustMonth(1)}
-                  onDecrement={() => adjustMonth(-1)}
-                />
-              )}
-              {!simplifiedMode && (
-                <Stepper
-                  value={String(day).padStart(2, '0')}
-                  label="Dag"
-                  width="35px"
-                  color={COLORS.days}
-                  onIncrement={() => adjustDay(1)}
-                  onDecrement={() => adjustDay(-1)}
-                />
-              )}
+          {/* Dato-kontroller - vis hvis ikke enkel modus, eller hvis måneder/dager er valgt */}
+          {(!simplifiedMode || selectedUnits.months || selectedUnits.days) && (
+            <div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dato</div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                {!simplifiedMode && (
+                  <Stepper
+                    value={year}
+                    label="År"
+                    width="55px"
+                    onIncrement={() => adjustYear(1)}
+                    onDecrement={() => adjustYear(-1)}
+                  />
+                )}
+                {(!simplifiedMode || selectedUnits.months) && (
+                  <Stepper
+                    value={String(month + 1).padStart(2, '0')}
+                    label="Mån"
+                    width="35px"
+                    color={COLORS.months}
+                    onIncrement={() => adjustMonth(1)}
+                    onDecrement={() => adjustMonth(-1)}
+                  />
+                )}
+                {(!simplifiedMode || selectedUnits.days) && (
+                  <Stepper
+                    value={String(day).padStart(2, '0')}
+                    label="Dag"
+                    width="35px"
+                    color={COLORS.days}
+                    onIncrement={() => adjustDay(1)}
+                    onDecrement={() => adjustDay(-1)}
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Tid</div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <Stepper
-                value={String(hours).padStart(2, '0')}
-                label="Tim"
-                width="35px"
-                color={COLORS.hours}
-                onIncrement={() => adjustHour(1)}
-                onDecrement={() => adjustHour(-1)}
-              />
-              <Stepper
-                value={String(minutes).padStart(2, '0')}
-                label="Min"
-                width="35px"
-                color={COLORS.minutes}
-                onIncrement={() => adjustMinute(1)}
-                onDecrement={() => adjustMinute(-1)}
-              />
-              {!simplifiedMode && (
-                <Stepper
-                  value={String(seconds).padStart(2, '0')}
-                  label="Sek"
-                  width="35px"
-                  color={COLORS.seconds}
-                  onIncrement={() => adjustSecond(1)}
-                  onDecrement={() => adjustSecond(-1)}
-                />
-              )}
+          {/* Tid-kontroller - vis hvis ikke enkel modus, eller hvis timer/minutter/sekunder er valgt */}
+          {(!simplifiedMode || selectedUnits.hours || selectedUnits.minutes || selectedUnits.seconds) && (
+            <div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Tid</div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                {(!simplifiedMode || selectedUnits.hours) && (
+                  <Stepper
+                    value={String(hours).padStart(2, '0')}
+                    label="Tim"
+                    width="35px"
+                    color={COLORS.hours}
+                    onIncrement={() => adjustHour(1)}
+                    onDecrement={() => adjustHour(-1)}
+                  />
+                )}
+                {(!simplifiedMode || selectedUnits.minutes) && (
+                  <Stepper
+                    value={String(minutes).padStart(2, '0')}
+                    label="Min"
+                    width="35px"
+                    color={COLORS.minutes}
+                    onIncrement={() => adjustMinute(1)}
+                    onDecrement={() => adjustMinute(-1)}
+                  />
+                )}
+                {(!simplifiedMode || selectedUnits.seconds) && (
+                  <Stepper
+                    value={String(seconds).padStart(2, '0')}
+                    label="Sek"
+                    width="35px"
+                    color={COLORS.seconds}
+                    onIncrement={() => adjustSecond(1)}
+                    onDecrement={() => adjustSecond(-1)}
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button onClick={setToNow}>
