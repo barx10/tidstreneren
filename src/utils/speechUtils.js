@@ -1,11 +1,7 @@
-// TTS-modul med Puter/ElevenLabs og Web Speech API fallback
-// for bedre tilgjengelighet i pedagogiske apper
+// TTS-modul med Web Speech API
+// Optimalisert for norsk og engelsk tale
 
-// TTS Provider: 'puter' eller 'native'
-let currentProvider = 'puter';
-let puterAvailable = null; // null = ikke sjekket ennå
-
-// Cache for native stemmer
+// Cache for stemmer
 let cachedVoices = [];
 let norwegianVoice = null;
 let englishVoice = null;
@@ -13,75 +9,40 @@ let isInitialized = false;
 
 // Standard TTS-innstillinger optimalisert for barn
 const defaultSettings = {
-  rate: 0.85,      // Litt langsommere for bedre forståelse
+  rate: 0.9,       // Litt langsommere for bedre forståelse
   pitch: 1.0,      // Normal tonehøyde
   volume: 1.0,     // Full volum
 };
 
 let userSettings = { ...defaultSettings };
 
-// ElevenLabs stemme-IDer (naturlige stemmer)
-// Bruker multilingual modell som støtter norsk og engelsk
-const ELEVENLABS_CONFIG = {
-  model: 'eleven_multilingual_v2',
-  // Rachel - en vennlig, tydelig stemme som fungerer godt for barn
-  voiceId: '21m00Tcm4TlvDq8ikWAM',
-};
-
-// Prioriterte native stemmer
+// Prioriterte norske stemmer (beste først)
 const norwegianVoicePriority = [
-  'Microsoft Iselin Online',
-  'Google norsk',
-  'Nora',
-  'Henrik',
+  'Microsoft Iselin Online',  // Windows - god kvalitet
+  'Nora',                     // macOS/iOS
+  'Google norsk',             // Chrome
+  'Henrik',                   // macOS/iOS
   'Norwegian',
-  'norsk',
 ];
 
+// Prioriterte engelske stemmer
 const englishVoicePriority = [
-  'Microsoft Zira Online',
-  'Microsoft David Online',
-  'Google US English',
-  'Samantha',
-  'Daniel',
-  'English',
+  'Microsoft Zira Online',    // Windows - kvinnelig
+  'Microsoft David Online',   // Windows - mannlig
+  'Samantha',                 // macOS/iOS
+  'Google US English',        // Chrome
+  'Daniel',                   // macOS/iOS UK
+  'Karen',                    // macOS/iOS AU
 ];
 
 /**
- * Sjekk om Puter.js er tilgjengelig
+ * Initialiser TTS-systemet og last inn stemmer
  */
-async function checkPuterAvailability() {
-  if (puterAvailable !== null) return puterAvailable;
-
-  try {
-    if (typeof puter !== 'undefined' && puter.ai && puter.ai.txt2speech) {
-      // Test med en kort tekst
-      puterAvailable = true;
-      console.log('Puter TTS (ElevenLabs) tilgjengelig');
-    } else {
-      puterAvailable = false;
-      console.log('Puter TTS ikke tilgjengelig, bruker native TTS');
-    }
-  } catch (e) {
-    puterAvailable = false;
-    console.log('Puter TTS feilet, bruker native TTS:', e.message);
-  }
-
-  return puterAvailable;
-}
-
-/**
- * Initialiser TTS-systemet
- */
-export async function initVoices() {
-  // Sjekk Puter først
-  await checkPuterAvailability();
-
-  // Initialiser også native TTS som fallback
+export function initVoices() {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
-      console.warn('Native Speech synthesis ikke støttet');
-      resolve(puterAvailable);
+      console.warn('Speech synthesis ikke støttet i denne nettleseren');
+      resolve(false);
       return;
     }
 
@@ -92,10 +53,12 @@ export async function initVoices() {
       isInitialized = true;
 
       if (norwegianVoice) {
-        console.log(`Native norsk stemme: ${norwegianVoice.name}`);
+        console.log(`Norsk stemme: ${norwegianVoice.name} (${norwegianVoice.lang})`);
+      } else {
+        console.warn('Ingen norsk stemme funnet');
       }
       if (englishVoice) {
-        console.log(`Native English voice: ${englishVoice.name}`);
+        console.log(`English voice: ${englishVoice.name} (${englishVoice.lang})`);
       }
 
       resolve(true);
@@ -106,6 +69,7 @@ export async function initVoices() {
       loadVoices();
     } else {
       window.speechSynthesis.onvoiceschanged = loadVoices;
+      // Timeout som fallback
       setTimeout(() => {
         if (!isInitialized) loadVoices();
       }, 1000);
@@ -114,7 +78,7 @@ export async function initVoices() {
 }
 
 /**
- * Finn beste native stemme
+ * Finn den beste tilgjengelige stemmen for et språk
  */
 function findBestVoice(lang) {
   if (cachedVoices.length === 0) return null;
@@ -123,19 +87,24 @@ function findBestVoice(lang) {
   let priority;
 
   if (lang === 'no') {
+    // Filtrer norske stemmer (nb-NO, no-NO, nn-NO)
     voices = cachedVoices.filter(
-      voice => voice.lang.startsWith('nb') ||
-               voice.lang.startsWith('no') ||
-               voice.lang === 'nn-NO'
+      voice => voice.lang === 'nb-NO' ||
+               voice.lang === 'no-NO' ||
+               voice.lang === 'nn-NO' ||
+               voice.lang.startsWith('nb') ||
+               voice.lang.startsWith('no')
     );
     priority = norwegianVoicePriority;
   } else {
+    // Filtrer engelske stemmer
     voices = cachedVoices.filter(voice => voice.lang.startsWith('en'));
     priority = englishVoicePriority;
   }
 
   if (voices.length === 0) return null;
 
+  // Søk etter prioriterte stemmer først
   for (const preferredName of priority) {
     const match = voices.find(
       voice => voice.name.toLowerCase().includes(preferredName.toLowerCase())
@@ -143,97 +112,71 @@ function findBestVoice(lang) {
     if (match) return match;
   }
 
-  const localVoice = voices.find(v => v.localService);
-  if (localVoice) return localVoice;
+  // Foretrekk online/remote stemmer (ofte bedre kvalitet)
+  const onlineVoice = voices.find(v => !v.localService);
+  if (onlineVoice) return onlineVoice;
 
   return voices[0];
 }
 
 /**
- * Snakk med Puter/ElevenLabs
+ * Snakk ut tekst
  */
-async function speakWithPuter(text, lang) {
-  try {
-    // ElevenLabs multilingual modell håndterer språk automatisk
-    // basert på teksten, men vi kan legge til språkmarkør
-    const audio = await puter.ai.txt2speech(text, {
-      provider: 'elevenlabs',
-      voice: ELEVENLABS_CONFIG.voiceId,
-      model: ELEVENLABS_CONFIG.model,
-    });
-
-    audio.play();
-    return true;
-  } catch (error) {
-    console.error('Puter TTS feilet:', error);
-    return false;
-  }
-}
-
-/**
- * Snakk med native Web Speech API
- */
-function speakWithNative(text, lang, options = {}) {
+export function speak(text, lang = 'no', options = {}) {
   if (!('speechSynthesis' in window)) {
+    console.warn('Speech synthesis ikke støttet');
+    options.onError?.('TTS ikke støttet');
     return null;
   }
 
+  if (!text || text.trim().length === 0) {
+    return null;
+  }
+
+  // Stopp eventuell pågående tale
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang === 'no' ? 'nb-NO' : 'en-US';
+
+  // Sett riktig språk
+  if (lang === 'no') {
+    utterance.lang = 'nb-NO';
+  } else {
+    utterance.lang = 'en-US';
+  }
+
   utterance.rate = options.rate ?? userSettings.rate;
   utterance.pitch = options.pitch ?? userSettings.pitch;
   utterance.volume = options.volume ?? userSettings.volume;
 
+  // Bruk cached stemme for riktig språk
   const voice = lang === 'no' ? norwegianVoice : englishVoice;
   if (voice) {
     utterance.voice = voice;
+  } else {
+    // Fallback: prøv å finne stemme på nytt
+    const voices = window.speechSynthesis.getVoices();
+    const fallbackVoice = voices.find(v => {
+      if (lang === 'no') {
+        return v.lang === 'nb-NO' || v.lang === 'no-NO' || v.lang.startsWith('nb');
+      }
+      return v.lang.startsWith('en');
+    });
+    if (fallbackVoice) {
+      utterance.voice = fallbackVoice;
+    }
   }
 
+  // Event handlers
   utterance.onstart = () => options.onStart?.();
   utterance.onend = () => options.onEnd?.();
   utterance.onerror = (event) => {
-    console.error('Native TTS feil:', event.error);
+    console.error('TTS feil:', event.error);
     options.onError?.(event.error);
   };
 
   window.speechSynthesis.speak(utterance);
   return utterance;
-}
-
-/**
- * Hovedfunksjon for å snakke tekst
- * Prøver Puter først, faller tilbake til native
- */
-export async function speak(text, lang = 'no', options = {}) {
-  if (!text || text.trim().length === 0) {
-    return null;
-  }
-
-  // Stopp eventuell pågående native tale
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
-
-  // Prøv Puter/ElevenLabs først
-  if (puterAvailable === null) {
-    await checkPuterAvailability();
-  }
-
-  if (puterAvailable && currentProvider === 'puter') {
-    const success = await speakWithPuter(text, lang);
-    if (success) {
-      options.onStart?.();
-      // Note: Puter audio har egen onended, men vi kaller onEnd etter en stund
-      return { provider: 'puter' };
-    }
-    // Fallback til native hvis Puter feilet
-    console.log('Faller tilbake til native TTS');
-  }
-
-  // Bruk native TTS
-  return speakWithNative(text, lang, options);
 }
 
 /**
@@ -243,71 +186,44 @@ export function stopSpeaking() {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
-  // Note: Puter audio må stoppes manuelt hvis lagret referanse
 }
 
 /**
  * Sjekk om TTS er tilgjengelig
  */
 export function isTTSAvailable() {
-  return puterAvailable || 'speechSynthesis' in window;
+  return 'speechSynthesis' in window;
 }
 
 /**
  * Sjekk om norsk stemme er tilgjengelig
  */
 export function hasNorwegianVoice() {
-  return puterAvailable || norwegianVoice !== null;
+  return norwegianVoice !== null;
 }
 
 /**
  * Sjekk om engelsk stemme er tilgjengelig
  */
 export function hasEnglishVoice() {
-  return puterAvailable || englishVoice !== null;
+  return englishVoice !== null;
 }
 
 /**
- * Hent info om nåværende stemme/provider
+ * Hent info om nåværende stemme
  */
 export function getCurrentVoiceInfo(lang = 'no') {
-  if (puterAvailable && currentProvider === 'puter') {
-    return {
-      name: 'ElevenLabs (via Puter)',
-      provider: 'puter',
-      model: ELEVENLABS_CONFIG.model,
-    };
-  }
-
   const voice = lang === 'no' ? norwegianVoice : englishVoice;
   if (!voice) return null;
   return {
     name: voice.name,
     lang: voice.lang,
     localService: voice.localService,
-    provider: 'native',
   };
 }
 
 /**
- * Bytt TTS provider
- */
-export function setProvider(provider) {
-  if (provider === 'puter' || provider === 'native') {
-    currentProvider = provider;
-    console.log(`TTS provider byttet til: ${provider}`);
-  }
-}
-
-/**
- * Hent nåværende provider
- */
-export function getProvider() {
-  return currentProvider;
-}
-
-/**
- * Oppdater TTS-innstillinger (for native)
+ * Oppdater TTS-innstillinger
  */
 export function updateSettings(settings) {
   userSettings = { ...userSettings, ...settings };
