@@ -15,6 +15,7 @@ function App() {
 
   // Valgte enheter for enkel modus
   const [selectedUnits, setSelectedUnits] = useState({
+    year: false,
     months: false,
     days: false,
     hours: true,
