@@ -539,6 +539,44 @@ function YearClock({ simplifiedMode = false, selectedUnits = {} }) {
             );
           })}
 
+          {/* Labels for days, hours, minutes, seconds - plassert i bue over hver ring */}
+          {ringConfig.map((ring) => {
+            // Vis bare etiketter for disse enhetene (ikke måneder - de har egne labels rundt)
+            if (ring.name === 'months') return null;
+            
+            const labelMap = {
+              'days': 'dager',
+              'hours': 'timer',
+              'minutes': 'minutter',
+              'seconds': 'sekunder'
+            };
+            
+            const label = labelMap[ring.name];
+            if (!label) return null;
+            
+            // Plasser etiketten over ringen, litt til venstre for toppen
+            const angle = -90 * (Math.PI / 180); // Rett opp (kl. 12)
+            const labelRadius = ring.radius + 12; // Litt utenfor ringen
+            const labelX = cx + labelRadius * Math.cos(angle);
+            const labelY = cy + labelRadius * Math.sin(angle);
+            
+            return (
+              <text
+                key={`label-${ring.name}`}
+                x={labelX}
+                y={labelY}
+                fill={ring.color}
+                fontSize="13"
+                fontWeight="600"
+                textAnchor="middle"
+                dominantBaseline="auto"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                {label}
+              </text>
+            );
+          })}
+
           {/* Center time display */}
           <text x={cx} y={cy - 16} textAnchor="middle" fontWeight="bold" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
             {simplifiedMode ? (
