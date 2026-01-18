@@ -57,7 +57,7 @@ function AboutModal({ onClose }) {
             fontSize: '28px',
             fontWeight: '700',
           }}>
-            Om Autismeklokke
+            Om Tidstreneren
           </h2>
 
           {/* Logo */}

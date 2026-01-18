@@ -145,7 +145,7 @@ export const translations = {
       legend: 'Forklaring',
       readDate: 'Les dato',
       readTime: 'Les tid',
-      setNow: 'Sett nå',
+      setNow: 'Nullstill',
       stop: 'Stopp',
       start: 'Start',
       date: 'Dato',
@@ -164,6 +164,14 @@ export const translations = {
       hoursLabel: 'Timer (24)',
       minutesLabel: 'Minutter (60)',
       secondsLabel: 'Sekunder (60)',
+      // Ring labels (short)
+      ringLabels: {
+        months: 'måneder',
+        days: 'dager',
+        hours: 'timer',
+        minutes: 'minutter',
+        seconds: 'sekunder',
+      },
     },
 
     // Months
@@ -433,7 +441,7 @@ export const translations = {
       legend: 'Legend',
       readDate: 'Read date',
       readTime: 'Read time',
-      setNow: 'Set now',
+      setNow: 'Reset',
       stop: 'Stop',
       start: 'Start',
       date: 'Date',
@@ -452,6 +460,14 @@ export const translations = {
       hoursLabel: 'Hours (24)',
       minutesLabel: 'Minutes (60)',
       secondsLabel: 'Seconds (60)',
+      // Ring labels (short)
+      ringLabels: {
+        months: 'months',
+        days: 'days',
+        hours: 'hours',
+        minutes: 'minutes',
+        seconds: 'seconds',
+      },
     },
 
     // Months

@@ -544,16 +544,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
           {/* Labels for alle ringer - plassert over hver ring */}
           {ringConfig.map((ring) => {
-            const labelMap = {
-              'months': 'måneder',
-              'days': 'dager',
-              'hours': 'timer',
-              'minutes': 'minutter',
-              'seconds': 'sekunder'
-            };
-            
-            const label = labelMap[ring.name];
-            if (!label) return null;
+            const label = t(`clock.ringLabels.${ring.name}`);
+            if (!label || label === `clock.ringLabels.${ring.name}`) return null;
             
             // Plasser etiketten over ringen (kl. 12)
             const angle = -90 * (Math.PI / 180); // Rett opp (kl. 12)

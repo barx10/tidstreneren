@@ -87,7 +87,7 @@ function App() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 24px',
-          zIndex: 200,
+          zIndex: 1001,
         }}>
           <h1 style={{
             fontSize: '20px',
@@ -230,7 +230,7 @@ function App() {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 999,
+            zIndex: 500,
           }}
           onClick={closeMenu}
         />
@@ -238,40 +238,47 @@ function App() {
 
       {/* Modals */}
       {showHelp && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2000,
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            maxWidth: '800px',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            position: 'relative',
-          }}>
+        <div 
+          onClick={() => setShowHelp(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '800px',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              position: 'relative',
+            }}
+          >
             <button
               onClick={() => setShowHelp(false)}
               style={{
                 position: 'absolute',
                 top: '16px',
                 right: '16px',
-                background: '#f0f0f0',
+                background: 'rgba(255,255,255,0.9)',
                 border: 'none',
                 borderRadius: '50%',
                 width: '32px',
                 height: '32px',
                 cursor: 'pointer',
                 fontSize: '18px',
-                zIndex: 10,
+                zIndex: 1010,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
               }}
             >
               ×
@@ -281,65 +288,12 @@ function App() {
         </div>
       )}
 
+      {/* SimplifiedMode panel - vises når enkel modus er aktivert */}
       {simplifiedMode && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2000,
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '24px',
-            position: 'relative',
-          }}>
-            <button
-              onClick={() => setSimplifiedMode(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: '#f0f0f0',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                cursor: 'pointer',
-                fontSize: '18px',
-              }}
-            >
-              ×
-            </button>
-            <SimplifiedMode
-              selectedUnits={selectedUnits}
-              setSelectedUnits={setSelectedUnits}
-            />
-            <button
-              onClick={() => setSimplifiedMode(false)}
-              style={{
-                marginTop: '16px',
-                padding: '12px 24px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600',
-                width: '100%',
-              }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
+        <SimplifiedMode
+          selectedUnits={selectedUnits}
+          setSelectedUnits={setSelectedUnits}
+        />
       )}
 
       {showPractice && (
