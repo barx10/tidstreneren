@@ -1,4 +1,4 @@
-# 🕐 Autismeklokke / Autism Clock
+# 🕐 Tidstreneren / Time Coach
 
 **[Norsk](#norsk) | [English](#english)**
 
@@ -7,11 +7,11 @@
 <a name="norsk"></a>
 # 🇳🇴 Norsk
 
-En pedagogisk klokke-applikasjon spesielt tilrettelagt for elever med autisme som har vanskeligheter med å forstå abstrakte tidsbegreper.
+En pedagogisk klokke-applikasjon for å lære tidsbegreper. Spesielt tilrettelagt for barn og elever som har vanskeligheter med å forstå abstrakte tidskonsepter.
 
 ## 🎯 Formål
 
-Mange elever med autisme har utfordringer med å forstå tid som et abstrakt konsept. Denne applikasjonen visualiserer tid på flere måter samtidig for å gjøre det mer konkret og forståelig:
+Mange barn har utfordringer med å forstå tid som et abstrakt konsept. Denne applikasjonen visualiserer tid på flere måter samtidig for å gjøre det mer konkret og forståelig:
 
 - **Visuell representasjon** av sekunder, minutter, timer, dager, måneder og år
 - **Fargekodet system** som gjør det lettere å skille mellom tidsenheter
@@ -39,11 +39,11 @@ Mange elever med autisme har utfordringer med å forstå tid som et abstrakt kon
 - ⏳ **Nedtelling** - Sett opp nedtellinger for å forstå tid som gjenstår
 - 📅 **Min dag** - Visualiser daglige rutiner med tidspunkter
 
-### Tilrettelegging for autisme
+### Tilrettelegging
 - **Forutsigbarhet** - Konsistent design og interaksjonsmønstre
 - **Visuell klarhet** - Tydelige farger og former
 - **Minimal distraksjon** - Rent og ryddig grensesnitt
-- **Selvbestemt tempo** - Eleven styrer hastigheten selv
+- **Selvbestemt tempo** - Barnet styrer hastigheten selv
 - **Multisensorisk** - Både visuelt og auditivt
 
 ## 🚀 Komme i gang
@@ -99,11 +99,11 @@ Hver tidsenhet har sin egen farge for å gjøre det lettere å skille dem:
 <a name="english"></a>
 # 🇬🇧 English
 
-An educational clock application specifically designed for students with autism who have difficulties understanding abstract time concepts.
+An educational clock application for learning time concepts. Specially designed for children and students who have difficulties understanding abstract time concepts.
 
 ## 🎯 Purpose
 
-Many students with autism have challenges understanding time as an abstract concept. This application visualizes time in multiple ways simultaneously to make it more concrete and understandable:
+Many children have challenges understanding time as an abstract concept. This application visualizes time in multiple ways simultaneously to make it more concrete and understandable:
 
 - **Visual representation** of seconds, minutes, hours, days, months and years
 - **Color-coded system** that makes it easier to distinguish between time units
@@ -131,11 +131,11 @@ Many students with autism have challenges understanding time as an abstract conc
 - ⏳ **Countdown** - Set up countdowns to understand remaining time
 - 📅 **My Day** - Visualize daily routines with times
 
-### Autism Accommodations
+### Accommodations
 - **Predictability** - Consistent design and interaction patterns
 - **Visual Clarity** - Clear colors and shapes
 - **Minimal Distraction** - Clean and tidy interface
-- **Self-paced** - The student controls the speed
+- **Self-paced** - The child controls the speed
 - **Multisensory** - Both visual and auditory
 
 ## 🚀 Getting Started
@@ -213,7 +213,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **Kenneth Bareksten**
 - Special educator and developer / Spesialpedagog og utvikler
-- Experience with accommodations for students with autism
+- Experience with educational accommodations
 - GitHub: [@barx10](https://github.com/barx10)
 
 ## 🙏 Thanks to / Takk til

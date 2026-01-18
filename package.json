@@ -1,7 +1,7 @@
 {
-  "name": "autismeklokke",
+  "name": "tidstreneren",
   "version": "1.0.0",
-  "description": "Pedagogisk klokke-app for elever med autisme - læring av abstrakte tidsbegreper",
+  "description": "Pedagogisk klokke-app for læring av tidsbegreper / Educational clock app for learning time concepts",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,11 +17,12 @@
     "vite": "^7.3.1"
   },
   "keywords": [
-    "autisme",
+    "education",
     "pedagogikk",
+    "clock",
     "klokke",
-    "spesialpedagogikk",
-    "tilrettelegging"
+    "time",
+    "learning"
   ],
   "author": "Kenneth Bareksten",
   "license": "MIT"
