@@ -5,8 +5,11 @@ import SimplifiedMode from './components/SimplifiedMode';
 import PracticeMode from './components/PracticeMode';
 import CountdownTimer from './components/CountdownTimer';
 import DailyRoutine from './components/DailyRoutine';
+import LanguageToggle from './components/LanguageToggle';
+import { useLanguage } from './context/LanguageContext';
 
 function App() {
+  const { t } = useLanguage();
   const [showHelp, setShowHelp] = useState(true);
   const [simplifiedMode, setSimplifiedMode] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
@@ -49,42 +52,44 @@ function App() {
         display: 'flex',
         gap: '8px',
         flexWrap: 'wrap',
-        maxWidth: '450px',
+        maxWidth: '500px',
         justifyContent: 'flex-end',
       }}>
+        <LanguageToggle />
+
         <button
           onClick={() => setShowHelp(!showHelp)}
           style={buttonStyle(showHelp)}
         >
-          {showHelp ? 'Skjul hjelp' : 'Vis hjelp'}
+          {showHelp ? t('nav.hideHelp') : t('nav.showHelp')}
         </button>
 
         <button
           onClick={() => setSimplifiedMode(!simplifiedMode)}
           style={buttonStyle(simplifiedMode)}
         >
-          {simplifiedMode ? 'Full modus' : 'Enkel modus'}
+          {simplifiedMode ? t('nav.fullMode') : t('nav.simplifiedMode')}
         </button>
 
         <button
           onClick={() => setShowPractice(true)}
           style={buttonStyle(false)}
         >
-          Øvelser
+          {t('nav.exercises')}
         </button>
 
         <button
           onClick={() => setShowCountdown(true)}
           style={buttonStyle(false)}
         >
-          Nedtelling
+          {t('nav.countdown')}
         </button>
 
         <button
           onClick={() => setShowRoutine(true)}
           style={buttonStyle(false)}
         >
-          Min dag
+          {t('nav.myDay')}
         </button>
       </div>
 

@@ -1,28 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { speak, initVoices } from '../utils/speechUtils';
-
-const DEFAULT_ROUTINES = [
-  { id: 1, name: 'Våkne', hours: 7, minutes: 0, icon: '☀️' },
-  { id: 2, name: 'Frokost', hours: 7, minutes: 30, icon: '🍳' },
-  { id: 3, name: 'Skole begynner', hours: 8, minutes: 30, icon: '🏫' },
-  { id: 4, name: 'Friminutt', hours: 10, minutes: 0, icon: '⚽' },
-  { id: 5, name: 'Lunsj', hours: 11, minutes: 30, icon: '🥪' },
-  { id: 6, name: 'Skole slutt', hours: 14, minutes: 0, icon: '🎒' },
-  { id: 7, name: 'Middag', hours: 17, minutes: 0, icon: '🍽️' },
-  { id: 8, name: 'Leggetid', hours: 20, minutes: 30, icon: '🌙' },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 const ICONS = ['☀️', '🍳', '🏫', '⚽', '🥪', '🎒', '🍽️', '🌙', '📚', '🎮', '🛁', '🚗', '🎨', '🎵', '💊', '🦷'];
 
 function DailyRoutine({ onClose }) {
+  const { t, language } = useLanguage();
+
+  const DEFAULT_ROUTINES_NO = [
+    { id: 1, name: 'Våkne', hours: 7, minutes: 0, icon: '☀️' },
+    { id: 2, name: 'Frokost', hours: 7, minutes: 30, icon: '🍳' },
+    { id: 3, name: 'Skole begynner', hours: 8, minutes: 30, icon: '🏫' },
+    { id: 4, name: 'Friminutt', hours: 10, minutes: 0, icon: '⚽' },
+    { id: 5, name: 'Lunsj', hours: 11, minutes: 30, icon: '🥪' },
+    { id: 6, name: 'Skole slutt', hours: 14, minutes: 0, icon: '🎒' },
+    { id: 7, name: 'Middag', hours: 17, minutes: 0, icon: '🍽️' },
+    { id: 8, name: 'Leggetid', hours: 20, minutes: 30, icon: '🌙' },
+  ];
+
+  const DEFAULT_ROUTINES_EN = [
+    { id: 1, name: 'Wake up', hours: 7, minutes: 0, icon: '☀️' },
+    { id: 2, name: 'Breakfast', hours: 7, minutes: 30, icon: '🍳' },
+    { id: 3, name: 'School starts', hours: 8, minutes: 30, icon: '🏫' },
+    { id: 4, name: 'Recess', hours: 10, minutes: 0, icon: '⚽' },
+    { id: 5, name: 'Lunch', hours: 11, minutes: 30, icon: '🥪' },
+    { id: 6, name: 'School ends', hours: 14, minutes: 0, icon: '🎒' },
+    { id: 7, name: 'Dinner', hours: 17, minutes: 0, icon: '🍽️' },
+    { id: 8, name: 'Bedtime', hours: 20, minutes: 30, icon: '🌙' },
+  ];
+
   const [routines, setRoutines] = useState(() => {
-    const saved = localStorage.getItem('dailyRoutines');
-    return saved ? JSON.parse(saved) : DEFAULT_ROUTINES;
+    const saved = localStorage.getItem(`dailyRoutines_${language}`);
+    return saved ? JSON.parse(saved) : (language === 'no' ? DEFAULT_ROUTINES_NO : DEFAULT_ROUTINES_EN);
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [editingId, setEditingId] = useState(null);
   const [newRoutine, setNewRoutine] = useState({ name: '', hours: 12, minutes: 0, icon: '⭐' });
   const [showAddForm, setShowAddForm] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`dailyRoutines_${language}`);
+    if (saved) {
+      setRoutines(JSON.parse(saved));
+    } else {
+      setRoutines(language === 'no' ? DEFAULT_ROUTINES_NO : DEFAULT_ROUTINES_EN);
+    }
+  }, [language]);
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -30,8 +52,8 @@ function DailyRoutine({ onClose }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('dailyRoutines', JSON.stringify(routines));
-  }, [routines]);
+    localStorage.setItem(`dailyRoutines_${language}`, JSON.stringify(routines));
+  }, [routines, language]);
 
   const formatTime = (hours, minutes) => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -50,17 +72,16 @@ function DailyRoutine({ onClose }) {
     const h = Math.floor(diff / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-    if (h === 0 && m === 0) return 'Nå!';
-    if (h === 0) return `om ${m} min`;
-    if (m === 0) return `om ${h} t`;
-    return `om ${h}t ${m}m`;
+    if (h === 0 && m === 0) return t('routine.nowExclaim');
+    if (h === 0) return `${t('routine.in')} ${m} ${t('routine.min')}`;
+    if (m === 0) return `${t('routine.in')} ${h}${t('routine.h')}`;
+    return `${t('routine.in')} ${h}${t('routine.h')} ${m}${t('routine.m')}`;
   };
 
-  const isCurrentActivity = (routine, index) => {
+  const isCurrentActivity = (routine) => {
     const now = currentTime.getHours() * 60 + currentTime.getMinutes();
     const routineTime = routine.hours * 60 + routine.minutes;
 
-    // Finn neste rutine
     const sortedRoutines = [...routines].sort((a, b) =>
       (a.hours * 60 + a.minutes) - (b.hours * 60 + b.minutes)
     );
@@ -77,17 +98,22 @@ function DailyRoutine({ onClose }) {
     const now = currentTime.getHours() * 60 + currentTime.getMinutes();
     const target = hours * 60 + minutes;
     const diff = target - now;
-    return diff > 0 && diff <= 30; // Innen 30 minutter
+    return diff > 0 && diff <= 30;
   };
 
-  // Initialize TTS voices on mount
   useEffect(() => {
     initVoices();
   }, []);
 
   const speakRoutine = (routine) => {
-    const timeUntil = getTimeUntil(routine.hours, routine.minutes);
-    speak(`${routine.name} er klokka ${routine.hours} ${routine.minutes > 0 ? `og ${routine.minutes}` : ''}. Det er ${timeUntil.replace('om ', '')}.`);
+    const timeUntilStr = getTimeUntil(routine.hours, routine.minutes);
+    let text;
+    if (language === 'no') {
+      text = `${routine.name} ${t('routine.isAt')} ${routine.hours} ${routine.minutes > 0 ? `${t('routine.and')} ${routine.minutes}` : ''}. ${t('routine.itIsIn')} ${timeUntilStr.replace(t('routine.in') + ' ', '')}.`;
+    } else {
+      text = `${routine.name} ${t('routine.isAt')} ${routine.hours}:${String(routine.minutes).padStart(2, '0')}. ${t('routine.itIsIn')} ${timeUntilStr.replace(t('routine.in') + ' ', '')}.`;
+    }
+    speak(text, language);
   };
 
   const addRoutine = () => {
@@ -105,12 +131,9 @@ function DailyRoutine({ onClose }) {
     setRoutines(routines.filter(r => r.id !== id));
   };
 
-  const updateRoutine = (id, updates) => {
-    setRoutines(routines.map(r => r.id === id ? { ...r, ...updates } : r));
-  };
-
   const resetToDefault = () => {
-    setRoutines(DEFAULT_ROUTINES);
+    setRoutines(language === 'no' ? DEFAULT_ROUTINES_NO : DEFAULT_ROUTINES_EN);
+    localStorage.removeItem(`dailyRoutines_${language}`);
   };
 
   const sortedRoutines = [...routines].sort((a, b) =>
@@ -139,7 +162,7 @@ function DailyRoutine({ onClose }) {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, color: '#2c3e50' }}>Min dag</h2>
+          <h2 style={{ margin: 0, color: '#2c3e50' }}>{t('routine.title')}</h2>
           <button
             onClick={onClose}
             style={{
@@ -158,7 +181,7 @@ function DailyRoutine({ onClose }) {
           </button>
         </div>
 
-        {/* Nåværende tid */}
+        {/* Current time */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           borderRadius: '12px',
@@ -167,13 +190,13 @@ function DailyRoutine({ onClose }) {
           textAlign: 'center',
           marginBottom: '20px',
         }}>
-          <div style={{ fontSize: '14px', opacity: 0.9 }}>Klokka er nå</div>
+          <div style={{ fontSize: '14px', opacity: 0.9 }}>{t('routine.currentTime')}</div>
           <div style={{ fontSize: '36px', fontWeight: 'bold' }}>
             {formatTime(currentTime.getHours(), currentTime.getMinutes())}
           </div>
         </div>
 
-        {/* Rutineliste */}
+        {/* Routine list */}
         <div style={{ marginBottom: '20px' }}>
           {sortedRoutines.map((routine, index) => {
             const isCurrent = isCurrentActivity(routine, index);
@@ -221,7 +244,7 @@ function DailyRoutine({ onClose }) {
                         padding: '2px 8px',
                         borderRadius: '10px',
                       }}>
-                        NÅ
+                        {t('routine.now')}
                       </span>
                     )}
                   </div>
@@ -252,7 +275,7 @@ function DailyRoutine({ onClose }) {
                       cursor: 'pointer',
                       fontSize: '14px',
                     }}
-                    title="Hør"
+                    title={t('routine.hear')}
                   >
                     🔊
                   </button>
@@ -268,7 +291,7 @@ function DailyRoutine({ onClose }) {
                       cursor: 'pointer',
                       fontSize: '14px',
                     }}
-                    title="Slett"
+                    title={t('routine.delete')}
                   >
                     X
                   </button>
@@ -278,7 +301,7 @@ function DailyRoutine({ onClose }) {
           })}
         </div>
 
-        {/* Legg til ny */}
+        {/* Add new form */}
         {showAddForm ? (
           <div style={{
             background: '#f8f9fa',
@@ -288,13 +311,13 @@ function DailyRoutine({ onClose }) {
           }}>
             <div style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                Navn på aktivitet
+                {t('routine.activityName')}
               </label>
               <input
                 type="text"
                 value={newRoutine.name}
                 onChange={(e) => setNewRoutine({ ...newRoutine, name: e.target.value })}
-                placeholder="F.eks. Gymnastikk"
+                placeholder={t('routine.activityPlaceholder')}
                 style={{
                   width: '100%',
                   padding: '10px',
@@ -309,7 +332,7 @@ function DailyRoutine({ onClose }) {
             <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                  Time
+                  {t('routine.hour')}
                 </label>
                 <input
                   type="number"
@@ -329,7 +352,7 @@ function DailyRoutine({ onClose }) {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                  Minutt
+                  {t('routine.minute')}
                 </label>
                 <input
                   type="number"
@@ -352,7 +375,7 @@ function DailyRoutine({ onClose }) {
 
             <div style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                Velg ikon
+                {t('routine.chooseIcon')}
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {ICONS.map((icon) => (
@@ -390,7 +413,7 @@ function DailyRoutine({ onClose }) {
                   cursor: 'pointer',
                 }}
               >
-                Legg til
+                {t('routine.add')}
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
@@ -405,7 +428,7 @@ function DailyRoutine({ onClose }) {
                   cursor: 'pointer',
                 }}
               >
-                Avbryt
+                {t('routine.cancel')}
               </button>
             </div>
           </div>
@@ -425,7 +448,7 @@ function DailyRoutine({ onClose }) {
                 cursor: 'pointer',
               }}
             >
-              + Legg til aktivitet
+              {t('routine.addActivity')}
             </button>
             <button
               onClick={resetToDefault}
@@ -438,26 +461,26 @@ function DailyRoutine({ onClose }) {
                 fontSize: '14px',
                 cursor: 'pointer',
               }}
-              title="Tilbakestill til standard"
+              title={t('routine.resetToDefault')}
             >
-              Reset
+              {t('routine.reset')}
             </button>
           </div>
         )}
 
-        {/* Hjelpetekst */}
+        {/* Help text */}
         <div style={{
           padding: '15px',
           background: '#e8f5e9',
           borderRadius: '8px',
           border: '2px solid #c8e6c9',
         }}>
-          <strong style={{ color: '#2e7d32', fontSize: '14px' }}>Slik fungerer det:</strong>
+          <strong style={{ color: '#2e7d32', fontSize: '14px' }}>{t('routine.howItWorks')}</strong>
           <ul style={{ fontSize: '13px', color: '#555', margin: '8px 0 0 0', paddingLeft: '20px' }}>
-            <li>Grønn = det du gjør nå</li>
-            <li>Oransje = kommer snart (innen 30 min)</li>
-            <li>Trykk på høyttaleren for å høre tiden</li>
-            <li>Legg til dine egne aktiviteter</li>
+            <li>{t('routine.greenCurrent')}</li>
+            <li>{t('routine.orangeSoon')}</li>
+            <li>{t('routine.clickSpeaker')}</li>
+            <li>{t('routine.addOwn')}</li>
           </ul>
         </div>
       </div>

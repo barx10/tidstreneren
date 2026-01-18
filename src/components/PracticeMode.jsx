@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { speak, initVoices } from '../utils/speechUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 const COLORS = {
   hours: '#2980b9',
@@ -27,23 +28,42 @@ function generateRandomTime(difficulty = 'easy') {
   return { hours, minutes };
 }
 
-// Formaterer tid til norsk tekst
-function timeToNorwegian(hours, minutes) {
-  if (minutes === 0) {
-    return `klokka ${hours}`;
-  } else if (minutes === 15) {
-    return `kvart over ${hours}`;
-  } else if (minutes === 30) {
-    const nextHour = hours === 12 ? 1 : hours + 1;
-    return `halv ${nextHour}`;
-  } else if (minutes === 45) {
-    const nextHour = hours === 12 ? 1 : hours + 1;
-    return `kvart på ${nextHour}`;
-  } else if (minutes < 30) {
-    return `${minutes} over ${hours}`;
+// Formaterer tid til tekst basert på språk
+function timeToText(hours, minutes, language, t) {
+  if (language === 'no') {
+    if (minutes === 0) {
+      return `klokka ${hours}`;
+    } else if (minutes === 15) {
+      return `kvart over ${hours}`;
+    } else if (minutes === 30) {
+      const nextHour = hours === 12 ? 1 : hours + 1;
+      return `halv ${nextHour}`;
+    } else if (minutes === 45) {
+      const nextHour = hours === 12 ? 1 : hours + 1;
+      return `kvart på ${nextHour}`;
+    } else if (minutes < 30) {
+      return `${minutes} over ${hours}`;
+    } else {
+      const nextHour = hours === 12 ? 1 : hours + 1;
+      return `${60 - minutes} på ${nextHour}`;
+    }
   } else {
-    const nextHour = hours === 12 ? 1 : hours + 1;
-    return `${60 - minutes} på ${nextHour}`;
+    // English
+    if (minutes === 0) {
+      return `${hours} o'clock`;
+    } else if (minutes === 15) {
+      return `quarter past ${hours}`;
+    } else if (minutes === 30) {
+      return `half past ${hours}`;
+    } else if (minutes === 45) {
+      const nextHour = hours === 12 ? 1 : hours + 1;
+      return `quarter to ${nextHour}`;
+    } else if (minutes < 30) {
+      return `${minutes} past ${hours}`;
+    } else {
+      const nextHour = hours === 12 ? 1 : hours + 1;
+      return `${60 - minutes} to ${nextHour}`;
+    }
   }
 }
 
@@ -154,6 +174,7 @@ function AnalogClockDisplay({ hours, minutes, size = 160 }) {
 }
 
 function PracticeMode({ onClose }) {
+  const { t, language } = useLanguage();
   const [difficulty, setDifficulty] = useState('easy');
   const [questionType, setQuestionType] = useState('read'); // 'read' eller 'set'
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -223,12 +244,6 @@ function PracticeMode({ onClose }) {
     initVoices();
   }, []);
 
-  const difficultyLabels = {
-    easy: 'Enkel',
-    medium: 'Medium',
-    hard: 'Vanskelig'
-  };
-
   return (
     <div style={{
       position: 'fixed',
@@ -251,7 +266,7 @@ function PracticeMode({ onClose }) {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, color: '#2c3e50' }}>Øvelser</h2>
+          <h2 style={{ margin: 0, color: '#2c3e50' }}>{t('practice.title')}</h2>
           <button
             onClick={onClose}
             style={{
@@ -279,13 +294,13 @@ function PracticeMode({ onClose }) {
           textAlign: 'center',
           marginBottom: '20px',
         }}>
-          <div style={{ fontSize: '14px', opacity: 0.9 }}>Din poengsum</div>
+          <div style={{ fontSize: '14px', opacity: 0.9 }}>{t('practice.yourScore')}</div>
           <div style={{ fontSize: '32px', fontWeight: 'bold' }}>
             {score} / {totalQuestions}
           </div>
           {totalQuestions > 0 && (
             <div style={{ fontSize: '14px', opacity: 0.9 }}>
-              {Math.round((score / totalQuestions) * 100)}% riktig
+              {Math.round((score / totalQuestions) * 100)}% {t('practice.correct')}
             </div>
           )}
         </div>
@@ -299,7 +314,7 @@ function PracticeMode({ onClose }) {
         }}>
           <div style={{ flex: 1, minWidth: '140px' }}>
             <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-              Vanskelighetsgrad
+              {t('practice.difficulty')}
             </label>
             <select
               value={difficulty}
@@ -312,15 +327,15 @@ function PracticeMode({ onClose }) {
                 fontSize: '14px',
               }}
             >
-              <option value="easy">Enkel (hele og halve)</option>
-              <option value="medium">Medium (kvarter)</option>
-              <option value="hard">Vanskelig (5-min)</option>
+              <option value="easy">{t('practice.easy')}</option>
+              <option value="medium">{t('practice.medium')}</option>
+              <option value="hard">{t('practice.hard')}</option>
             </select>
           </div>
 
           <div style={{ flex: 1, minWidth: '140px' }}>
             <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-              Oppgavetype
+              {t('practice.questionType')}
             </label>
             <select
               value={questionType}
@@ -337,8 +352,8 @@ function PracticeMode({ onClose }) {
                 fontSize: '14px',
               }}
             >
-              <option value="read">Les klokka</option>
-              <option value="set">Still klokka</option>
+              <option value="read">{t('practice.readClock')}</option>
+              <option value="set">{t('practice.setClock')}</option>
             </select>
           </div>
         </div>
@@ -351,7 +366,7 @@ function PracticeMode({ onClose }) {
               <div>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <p style={{ fontSize: '16px', color: '#555', marginBottom: '15px' }}>
-                    Hva viser klokka?
+                    {t('practice.whatTime')}
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <AnalogClockDisplay
@@ -403,7 +418,7 @@ function PracticeMode({ onClose }) {
                           {timeToDigital(answer.hours, answer.minutes)}
                         </div>
                         <div style={{ fontSize: '13px', color: '#666' }}>
-                          {timeToNorwegian(answer.hours, answer.minutes)}
+                          {timeToText(answer.hours, answer.minutes, language, t)}
                         </div>
                       </button>
                     );
@@ -415,7 +430,7 @@ function PracticeMode({ onClose }) {
               <div>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <p style={{ fontSize: '16px', color: '#555', marginBottom: '10px' }}>
-                    Still klokka til:
+                    {t('practice.setClockTo')}
                   </p>
                   <div style={{
                     background: '#f0f0f0',
@@ -427,10 +442,10 @@ function PracticeMode({ onClose }) {
                       {timeToDigital(currentQuestion.hours, currentQuestion.minutes)}
                     </div>
                     <div style={{ fontSize: '16px', color: '#666', marginTop: '5px' }}>
-                      {timeToNorwegian(currentQuestion.hours, currentQuestion.minutes)}
+                      {timeToText(currentQuestion.hours, currentQuestion.minutes, language, t)}
                     </div>
                     <button
-                      onClick={() => speak(timeToNorwegian(currentQuestion.hours, currentQuestion.minutes))}
+                      onClick={() => speak(timeToText(currentQuestion.hours, currentQuestion.minutes, language, t), language)}
                       style={{
                         marginTop: '10px',
                         padding: '8px 16px',
@@ -442,7 +457,7 @@ function PracticeMode({ onClose }) {
                         fontSize: '13px',
                       }}
                     >
-                      Hør tiden
+                      {t('practice.hearTime')}
                     </button>
                   </div>
                 </div>
@@ -458,7 +473,7 @@ function PracticeMode({ onClose }) {
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
                   <div style={{ textAlign: 'center' }}>
                     <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                      Timer
+                      {t('practice.hours')}
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
@@ -509,7 +524,7 @@ function PracticeMode({ onClose }) {
 
                   <div style={{ textAlign: 'center' }}>
                     <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px' }}>
-                      Minutter
+                      {t('practice.minutes')}
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
@@ -574,7 +589,7 @@ function PracticeMode({ onClose }) {
                       cursor: 'pointer',
                     }}
                   >
-                    Sjekk svar
+                    {t('practice.checkAnswer')}
                   </button>
                 )}
               </div>
@@ -602,12 +617,12 @@ function PracticeMode({ onClose }) {
                   color: isCorrect ? '#155724' : '#721c24',
                   marginBottom: '10px',
                 }}>
-                  {isCorrect ? 'Helt riktig!' : 'Nesten!'}
+                  {isCorrect ? t('practice.correctAnswer') : t('practice.almostAnswer')}
                 </div>
                 {!isCorrect && (
                   <div style={{ fontSize: '14px', color: '#721c24', marginBottom: '10px' }}>
-                    Riktig svar er <strong>{timeToDigital(currentQuestion.hours, currentQuestion.minutes)}</strong>
-                    {' '}({timeToNorwegian(currentQuestion.hours, currentQuestion.minutes)})
+                    {t('practice.correctWas')} <strong>{timeToDigital(currentQuestion.hours, currentQuestion.minutes)}</strong>
+                    {' '}({timeToText(currentQuestion.hours, currentQuestion.minutes, language, t)})
                   </div>
                 )}
                 <button
@@ -624,7 +639,7 @@ function PracticeMode({ onClose }) {
                     cursor: 'pointer',
                   }}
                 >
-                  Neste oppgave
+                  {t('practice.nextQuestion')}
                 </button>
               </div>
             )}
@@ -639,11 +654,11 @@ function PracticeMode({ onClose }) {
           borderRadius: '8px',
           border: '2px solid #ffe082',
         }}>
-          <strong style={{ color: '#f57f17', fontSize: '14px' }}>Tips:</strong>
+          <strong style={{ color: '#f57f17', fontSize: '14px' }}>{t('simplified.tip')}</strong>
           <p style={{ fontSize: '13px', color: '#555', margin: '8px 0 0 0' }}>
             {questionType === 'read'
-              ? 'Se på viserne. Den korte viser timer, den lange viser minutter.'
-              : 'Bruk + og - knappene for å stille klokka. Ta deg god tid!'
+              ? t('practice.tipRead')
+              : t('practice.tipSet')
             }
           </p>
         </div>

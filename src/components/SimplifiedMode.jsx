@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-
-const UNIT_CONFIG = [
-  { key: 'year', label: 'År', color: '#16a085' },
-  { key: 'months', label: 'Måneder', color: '#e67e22' },
-  { key: 'days', label: 'Dager', color: '#27ae60' },
-  { key: 'hours', label: 'Timer', color: '#2980b9' },
-  { key: 'minutes', label: 'Minutter', color: '#8e44ad' },
-  { key: 'seconds', label: 'Sekunder', color: '#c0392b' },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
+  const { t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const UNIT_CONFIG = [
+    { key: 'year', label: t('simplified.year'), color: '#16a085' },
+    { key: 'months', label: t('simplified.months'), color: '#e67e22' },
+    { key: 'days', label: t('simplified.days'), color: '#27ae60' },
+    { key: 'hours', label: t('simplified.hours'), color: '#2980b9' },
+    { key: 'minutes', label: t('simplified.minutes'), color: '#8e44ad' },
+    { key: 'seconds', label: t('simplified.seconds'), color: '#c0392b' },
+  ];
 
   const handleToggle = (key) => {
     setSelectedUnits(prev => ({
@@ -50,7 +52,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
             color: 'white',
             fontWeight: '600'
           }}>
-            Enkel modus
+            {t('simplified.title')}
           </h3>
         </div>
         <button
@@ -69,7 +71,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
             fontSize: '14px',
             fontWeight: 'bold',
           }}
-          title={isCollapsed ? 'Utvid' : 'Minimer'}
+          title={isCollapsed ? t('help.expand') : t('help.minimize')}
         >
           {isCollapsed ? '+' : '−'}
         </button>
@@ -83,7 +85,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
             lineHeight: '1.5',
             margin: '0 0 16px 0'
           }}>
-            Velg hvilke tidsenheter du vil øve på:
+            {t('simplified.description')}
           </p>
 
           {/* Avkrysningsbokser for enhetsvalg */}
@@ -146,7 +148,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
               color: '#856404',
               marginBottom: '12px',
             }}>
-              Velg minst én enhet for å se noe på klokka.
+              {t('simplified.selectOne')}
             </div>
           )}
 
@@ -158,7 +160,7 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
             color: '#1a5490',
             lineHeight: '1.5'
           }}>
-            <strong>💡 Tips:</strong> Start med timer og minutter. Legg til flere når du føler deg trygg!
+            <strong>💡 {t('simplified.tip')}</strong> {t('simplified.tipText')}
           </div>
         </div>
       )}

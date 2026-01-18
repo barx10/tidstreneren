@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { speak, initVoices } from '../utils/speechUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 function CountdownTimer({ onClose }) {
+  const { t, language } = useLanguage();
   const [targetHours, setTargetHours] = useState(12);
   const [targetMinutes, setTargetMinutes] = useState(0);
   const [eventName, setEventName] = useState('');
@@ -41,22 +43,25 @@ function CountdownTimer({ onClose }) {
     if (!timeRemaining) return;
 
     let text = '';
+    const hourWord = timeRemaining.hours === 1 ? t('countdown.hourSingular') : t('countdown.hourPlural');
+    const minuteWord = timeRemaining.minutes === 1 ? t('countdown.minuteSingular') : t('countdown.minutePlural');
+
     if (eventName) {
-      text = `${eventName} er om `;
+      text = `${eventName} ${t('countdown.isIn')} `;
     } else {
-      text = 'Det er ';
+      text = `${t('countdown.itIs')} `;
     }
 
     if (timeRemaining.hours > 0) {
-      text += `${timeRemaining.hours} ${timeRemaining.hours === 1 ? 'time' : 'timer'} og `;
+      text += `${timeRemaining.hours} ${hourWord} ${language === 'no' ? 'og' : 'and'} `;
     }
-    text += `${timeRemaining.minutes} ${timeRemaining.minutes === 1 ? 'minutt' : 'minutter'}`;
+    text += `${timeRemaining.minutes} ${minuteWord}`;
 
     if (!eventName) {
-      text += ' igjen';
+      text += ` ${t('countdown.remaining')}`;
     }
 
-    speak(text);
+    speak(text, language);
   };
 
   const getProgressColor = () => {
@@ -91,7 +96,7 @@ function CountdownTimer({ onClose }) {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, color: '#2c3e50' }}>Nedtelling</h2>
+          <h2 style={{ margin: 0, color: '#2c3e50' }}>{t('countdown.title')}</h2>
           <button
             onClick={onClose}
             style={{
@@ -114,18 +119,18 @@ function CountdownTimer({ onClose }) {
           // Oppsett
           <div>
             <p style={{ color: '#555', marginBottom: '20px', fontSize: '14px' }}>
-              Sett opp en nedtelling til noe som skal skje. Dette hjelper deg å forstå hvor lang tid det er igjen.
+              {t('countdown.description')}
             </p>
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '8px' }}>
-                Hva skal skje? (valgfritt)
+                {t('countdown.whatHappens')}
               </label>
               <input
                 type="text"
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
-                placeholder="F.eks. Friminutt, Lunsj, Hjem"
+                placeholder={t('countdown.placeholder')}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -139,11 +144,11 @@ function CountdownTimer({ onClose }) {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '8px' }}>
-                Når skal det skje?
+                {t('countdown.whenHappens')}
               </label>
               <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <label style={{ fontSize: '11px', color: '#888' }}>Time</label>
+                  <label style={{ fontSize: '11px', color: '#888' }}>{t('countdown.hour')}</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                     <button
                       onClick={() => setTargetHours(h => h <= 0 ? 23 : h - 1)}
@@ -192,7 +197,7 @@ function CountdownTimer({ onClose }) {
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <label style={{ fontSize: '11px', color: '#888' }}>Minutt</label>
+                  <label style={{ fontSize: '11px', color: '#888' }}>{t('countdown.minute')}</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                     <button
                       onClick={() => setTargetMinutes(m => m <= 0 ? 55 : m - 5)}
@@ -241,15 +246,15 @@ function CountdownTimer({ onClose }) {
             {/* Hurtigvalg */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '8px' }}>
-                Hurtigvalg
+                {t('countdown.quickSelect')}
               </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {[
-                  { label: '5 min', mins: 5 },
-                  { label: '10 min', mins: 10 },
-                  { label: '15 min', mins: 15 },
-                  { label: '30 min', mins: 30 },
-                  { label: '1 time', mins: 60 },
+                  { label: t('countdown.min5'), mins: 5 },
+                  { label: t('countdown.min10'), mins: 10 },
+                  { label: t('countdown.min15'), mins: 15 },
+                  { label: t('countdown.min30'), mins: 30 },
+                  { label: t('countdown.hour1'), mins: 60 },
                 ].map((opt) => (
                   <button
                     key={opt.label}
@@ -288,7 +293,7 @@ function CountdownTimer({ onClose }) {
                 cursor: 'pointer',
               }}
             >
-              Start nedtelling
+              {t('countdown.startCountdown')}
             </button>
           </div>
         ) : (
@@ -309,7 +314,7 @@ function CountdownTimer({ onClose }) {
               color: '#888',
               marginBottom: '15px',
             }}>
-              Klokka {formatTime(targetHours)}:{formatTime(targetMinutes)}
+              {language === 'no' ? 'Klokka' : 'At'} {formatTime(targetHours)}:{formatTime(targetMinutes)}
             </div>
 
             {timeRemaining && (
@@ -330,21 +335,21 @@ function CountdownTimer({ onClose }) {
                       <div style={{ fontSize: '48px', fontWeight: 'bold' }}>
                         {formatTime(timeRemaining.hours)}
                       </div>
-                      <div style={{ fontSize: '12px', opacity: 0.9 }}>timer</div>
+                      <div style={{ fontSize: '12px', opacity: 0.9 }}>{t('countdown.hours')}</div>
                     </div>
                     <div style={{ fontSize: '48px', fontWeight: 'bold' }}>:</div>
                     <div>
                       <div style={{ fontSize: '48px', fontWeight: 'bold' }}>
                         {formatTime(timeRemaining.minutes)}
                       </div>
-                      <div style={{ fontSize: '12px', opacity: 0.9 }}>minutter</div>
+                      <div style={{ fontSize: '12px', opacity: 0.9 }}>{t('countdown.minutes')}</div>
                     </div>
                     <div style={{ fontSize: '48px', fontWeight: 'bold' }}>:</div>
                     <div>
                       <div style={{ fontSize: '48px', fontWeight: 'bold' }}>
                         {formatTime(timeRemaining.seconds)}
                       </div>
-                      <div style={{ fontSize: '12px', opacity: 0.9 }}>sekunder</div>
+                      <div style={{ fontSize: '12px', opacity: 0.9 }}>{t('countdown.seconds')}</div>
                     </div>
                   </div>
                 </div>
@@ -358,10 +363,10 @@ function CountdownTimer({ onClose }) {
                 }}>
                   <div style={{ fontSize: '14px', color: '#555', marginBottom: '10px' }}>
                     {timeRemaining.hours > 0
-                      ? `${timeRemaining.hours} ${timeRemaining.hours === 1 ? 'time' : 'timer'} og ${timeRemaining.minutes} ${timeRemaining.minutes === 1 ? 'minutt' : 'minutter'} igjen`
+                      ? `${timeRemaining.hours} ${timeRemaining.hours === 1 ? t('countdown.hourSingular') : t('countdown.hourPlural')} ${language === 'no' ? 'og' : 'and'} ${timeRemaining.minutes} ${timeRemaining.minutes === 1 ? t('countdown.minuteSingular') : t('countdown.minutePlural')} ${t('countdown.remaining')}`
                       : timeRemaining.minutes > 0
-                        ? `${timeRemaining.minutes} ${timeRemaining.minutes === 1 ? 'minutt' : 'minutter'} igjen`
-                        : 'Nesten der!'
+                        ? `${timeRemaining.minutes} ${timeRemaining.minutes === 1 ? t('countdown.minuteSingular') : t('countdown.minutePlural')} ${t('countdown.remaining')}`
+                        : t('countdown.almostThere')
                     }
                   </div>
 
@@ -392,7 +397,7 @@ function CountdownTimer({ onClose }) {
                       color: '#e65100',
                       fontWeight: '500',
                     }}>
-                      Snart! Bare {timeRemaining.minutes} {timeRemaining.minutes === 1 ? 'minutt' : 'minutter'} igjen!
+                      {t('countdown.soonOnly')} {timeRemaining.minutes} {timeRemaining.minutes === 1 ? t('countdown.minuteSingular') : t('countdown.minutePlural')} {t('countdown.remaining')}!
                     </div>
                   )}
                 </div>
@@ -413,7 +418,7 @@ function CountdownTimer({ onClose }) {
                   cursor: 'pointer',
                 }}
               >
-                Hør hvor lenge
+                {t('countdown.hearRemaining')}
               </button>
               <button
                 onClick={() => setIsActive(false)}
@@ -428,7 +433,7 @@ function CountdownTimer({ onClose }) {
                   cursor: 'pointer',
                 }}
               >
-                Stopp
+                {t('countdown.stop')}
               </button>
             </div>
           </div>
@@ -442,10 +447,9 @@ function CountdownTimer({ onClose }) {
           borderRadius: '8px',
           border: '2px solid #90caf9',
         }}>
-          <strong style={{ color: '#1565c0', fontSize: '14px' }}>Hva er dette?</strong>
+          <strong style={{ color: '#1565c0', fontSize: '14px' }}>{t('countdown.whatIsThis')}</strong>
           <p style={{ fontSize: '13px', color: '#555', margin: '8px 0 0 0' }}>
-            Nedtellingen viser deg hvor lang tid det er til noe skal skje.
-            Når det er lite tid igjen, blir fargen rød - da er det snart!
+            {t('countdown.explanation')}
           </p>
         </div>
       </div>
