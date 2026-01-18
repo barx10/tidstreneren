@@ -1,47 +1,58 @@
-// TTS-modul med Web Speech API
+// TTS-modul med Google Chirp3-HD (via free-tts) og Web Speech API fallback
 // Optimalisert for norsk og engelsk tale
 
-// Cache for stemmer
+// TTS Provider konfiguration
+let useGoogleTTS = true; // Prøv Google først
+const GOOGLE_TTS_API = 'https://free-tts.thvroyal.workers.dev/api/text-to-speech';
+
+// Chirp3-HD stemmer
+const VOICES = {
+  no: { languageCode: 'nb-NO', voiceName: 'Kore' },  // Kvinnelig norsk
+  en: { languageCode: 'en-US', voiceName: 'Kore' },  // Kvinnelig engelsk
+};
+
+// Cache for native stemmer
 let cachedVoices = [];
 let norwegianVoice = null;
 let englishVoice = null;
 let isInitialized = false;
 
-// Standard TTS-innstillinger optimalisert for barn
+// Audio element for Google TTS
+let currentAudio = null;
+
+// Standard TTS-innstillinger
 const defaultSettings = {
-  rate: 0.9,       // Litt langsommere for bedre forståelse
-  pitch: 1.0,      // Normal tonehøyde
-  volume: 1.0,     // Full volum
+  rate: 0.9,
+  pitch: 1.0,
+  volume: 1.0,
 };
 
 let userSettings = { ...defaultSettings };
 
-// Prioriterte norske stemmer (beste først)
+// Prioriterte native stemmer
 const norwegianVoicePriority = [
-  'Microsoft Iselin Online',  // Windows - god kvalitet
-  'Nora',                     // macOS/iOS
-  'Google norsk',             // Chrome
-  'Henrik',                   // macOS/iOS
+  'Microsoft Iselin Online',
+  'Nora',
+  'Google norsk',
+  'Henrik',
   'Norwegian',
 ];
 
-// Prioriterte engelske stemmer
 const englishVoicePriority = [
-  'Microsoft Zira Online',    // Windows - kvinnelig
-  'Microsoft David Online',   // Windows - mannlig
-  'Samantha',                 // macOS/iOS
-  'Google US English',        // Chrome
-  'Daniel',                   // macOS/iOS UK
-  'Karen',                    // macOS/iOS AU
+  'Microsoft Zira Online',
+  'Microsoft David Online',
+  'Samantha',
+  'Google US English',
+  'Daniel',
 ];
 
 /**
- * Initialiser TTS-systemet og last inn stemmer
+ * Initialiser TTS-systemet
  */
 export function initVoices() {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
-      console.warn('Speech synthesis ikke støttet i denne nettleseren');
+      console.warn('Native Speech synthesis ikke støttet');
       resolve(false);
       return;
     }
@@ -53,12 +64,10 @@ export function initVoices() {
       isInitialized = true;
 
       if (norwegianVoice) {
-        console.log(`Norsk stemme: ${norwegianVoice.name} (${norwegianVoice.lang})`);
-      } else {
-        console.warn('Ingen norsk stemme funnet');
+        console.log(`Native norsk stemme: ${norwegianVoice.name}`);
       }
       if (englishVoice) {
-        console.log(`English voice: ${englishVoice.name} (${englishVoice.lang})`);
+        console.log(`Native English voice: ${englishVoice.name}`);
       }
 
       resolve(true);
@@ -69,7 +78,6 @@ export function initVoices() {
       loadVoices();
     } else {
       window.speechSynthesis.onvoiceschanged = loadVoices;
-      // Timeout som fallback
       setTimeout(() => {
         if (!isInitialized) loadVoices();
       }, 1000);
@@ -78,7 +86,7 @@ export function initVoices() {
 }
 
 /**
- * Finn den beste tilgjengelige stemmen for et språk
+ * Finn beste native stemme
  */
 function findBestVoice(lang) {
   if (cachedVoices.length === 0) return null;
@@ -87,7 +95,6 @@ function findBestVoice(lang) {
   let priority;
 
   if (lang === 'no') {
-    // Filtrer norske stemmer (nb-NO, no-NO, nn-NO)
     voices = cachedVoices.filter(
       voice => voice.lang === 'nb-NO' ||
                voice.lang === 'no-NO' ||
@@ -97,14 +104,12 @@ function findBestVoice(lang) {
     );
     priority = norwegianVoicePriority;
   } else {
-    // Filtrer engelske stemmer
     voices = cachedVoices.filter(voice => voice.lang.startsWith('en'));
     priority = englishVoicePriority;
   }
 
   if (voices.length === 0) return null;
 
-  // Søk etter prioriterte stemmer først
   for (const preferredName of priority) {
     const match = voices.find(
       voice => voice.name.toLowerCase().includes(preferredName.toLowerCase())
@@ -112,7 +117,6 @@ function findBestVoice(lang) {
     if (match) return match;
   }
 
-  // Foretrekk online/remote stemmer (ofte bedre kvalitet)
   const onlineVoice = voices.find(v => !v.localService);
   if (onlineVoice) return onlineVoice;
 
@@ -120,58 +124,77 @@ function findBestVoice(lang) {
 }
 
 /**
- * Snakk ut tekst
+ * Snakk med Google Chirp3-HD via free-tts
  */
-export function speak(text, lang = 'no', options = {}) {
+async function speakWithGoogle(text, lang) {
+  try {
+    const voiceConfig = VOICES[lang] || VOICES.en;
+
+    const response = await fetch(GOOGLE_TTS_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+        languageCode: voiceConfig.languageCode,
+        voiceName: voiceConfig.voiceName,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.audioContent) {
+      // Stopp eventuell pågående lyd
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+
+      // Spill av base64 audio
+      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      currentAudio = audio;
+      audio.volume = userSettings.volume;
+      await audio.play();
+      return true;
+    }
+
+    throw new Error('No audio content in response');
+  } catch (error) {
+    console.warn('Google TTS feilet:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Snakk med native Web Speech API
+ */
+function speakWithNative(text, lang, options = {}) {
   if (!('speechSynthesis' in window)) {
-    console.warn('Speech synthesis ikke støttet');
-    options.onError?.('TTS ikke støttet');
     return null;
   }
 
-  if (!text || text.trim().length === 0) {
-    return null;
-  }
-
-  // Stopp eventuell pågående tale
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-
-  // Sett riktig språk
-  if (lang === 'no') {
-    utterance.lang = 'nb-NO';
-  } else {
-    utterance.lang = 'en-US';
-  }
-
+  utterance.lang = lang === 'no' ? 'nb-NO' : 'en-US';
   utterance.rate = options.rate ?? userSettings.rate;
   utterance.pitch = options.pitch ?? userSettings.pitch;
   utterance.volume = options.volume ?? userSettings.volume;
 
-  // Bruk cached stemme for riktig språk
   const voice = lang === 'no' ? norwegianVoice : englishVoice;
   if (voice) {
     utterance.voice = voice;
-  } else {
-    // Fallback: prøv å finne stemme på nytt
-    const voices = window.speechSynthesis.getVoices();
-    const fallbackVoice = voices.find(v => {
-      if (lang === 'no') {
-        return v.lang === 'nb-NO' || v.lang === 'no-NO' || v.lang.startsWith('nb');
-      }
-      return v.lang.startsWith('en');
-    });
-    if (fallbackVoice) {
-      utterance.voice = fallbackVoice;
-    }
   }
 
-  // Event handlers
   utterance.onstart = () => options.onStart?.();
   utterance.onend = () => options.onEnd?.();
   utterance.onerror = (event) => {
-    console.error('TTS feil:', event.error);
+    console.error('Native TTS feil:', event.error);
     options.onError?.(event.error);
   };
 
@@ -180,9 +203,40 @@ export function speak(text, lang = 'no', options = {}) {
 }
 
 /**
+ * Hovedfunksjon for å snakke tekst
+ */
+export async function speak(text, lang = 'no', options = {}) {
+  if (!text || text.trim().length === 0) {
+    return null;
+  }
+
+  // Stopp pågående tale
+  stopSpeaking();
+
+  // Prøv Google TTS først
+  if (useGoogleTTS) {
+    const success = await speakWithGoogle(text, lang);
+    if (success) {
+      options.onStart?.();
+      return { provider: 'google' };
+    }
+    console.log('Faller tilbake til native TTS');
+  }
+
+  // Fallback til native
+  return speakWithNative(text, lang, options);
+}
+
+/**
  * Stopp pågående tale
  */
 export function stopSpeaking() {
+  // Stopp Google audio
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  // Stopp native TTS
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -199,27 +253,52 @@ export function isTTSAvailable() {
  * Sjekk om norsk stemme er tilgjengelig
  */
 export function hasNorwegianVoice() {
-  return norwegianVoice !== null;
+  return useGoogleTTS || norwegianVoice !== null;
 }
 
 /**
  * Sjekk om engelsk stemme er tilgjengelig
  */
 export function hasEnglishVoice() {
-  return englishVoice !== null;
+  return useGoogleTTS || englishVoice !== null;
 }
 
 /**
  * Hent info om nåværende stemme
  */
 export function getCurrentVoiceInfo(lang = 'no') {
+  if (useGoogleTTS) {
+    const config = VOICES[lang] || VOICES.en;
+    return {
+      name: `Google Chirp3-HD ${config.voiceName}`,
+      lang: config.languageCode,
+      provider: 'google',
+    };
+  }
+
   const voice = lang === 'no' ? norwegianVoice : englishVoice;
   if (!voice) return null;
   return {
     name: voice.name,
     lang: voice.lang,
     localService: voice.localService,
+    provider: 'native',
   };
+}
+
+/**
+ * Aktiver/deaktiver Google TTS
+ */
+export function setUseGoogleTTS(enabled) {
+  useGoogleTTS = enabled;
+  console.log(`Google TTS ${enabled ? 'aktivert' : 'deaktivert'}`);
+}
+
+/**
+ * Sjekk om Google TTS er aktivert
+ */
+export function isGoogleTTSEnabled() {
+  return useGoogleTTS;
 }
 
 /**
