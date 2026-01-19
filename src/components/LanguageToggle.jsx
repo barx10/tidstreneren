@@ -23,7 +23,6 @@ function LanguageToggle() {
       }}
       title={language === 'no' ? 'Switch to English' : 'Bytt til norsk'}
     >
-      <span style={{ fontSize: '16px' }}>{language === 'no' ? '🇳🇴' : '🇬🇧'}</span>
       {language === 'no' ? 'NO' : 'EN'}
     </button>
   );
