@@ -4,14 +4,21 @@ import { useLanguage } from '../context/LanguageContext';
 function SplashScreen({ onClose }) {
   const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(true);
+  const [showImage, setShowImage] = useState(true);
 
   useEffect(() => {
+    // Check if image exists by trying to load it
+    const img = new Image();
+    img.onload = () => setShowImage(true);
+    img.onerror = () => setShowImage(false);
+    img.src = '/splash-illustration.png';
+
     // Auto-close splash screen after 4 seconds
     const timer = setTimeout(() => {
       handleClose();
     }, 4000);
 
-    return () => clearInterval(timer);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
@@ -79,20 +86,18 @@ function SplashScreen({ onClose }) {
             fontWeight: 'bold',
           }}
         >
-          <img
-            src="/splash-illustration.png"
-            alt="Tidstreneren"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '16px',
-            }}
-            onError={(e) => {
-              // Fallback if image doesn't exist
-              e.target.style.display = 'none';
-            }}
-          />
+          {showImage ? (
+            <img
+              src="/splash-illustration.png"
+              alt="Tidstreneren"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '16px',
+              }}
+            />
+          ) : null}
         </div>
 
         {/* Title */}
