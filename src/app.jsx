@@ -7,6 +7,7 @@ import CountdownTimer from './components/CountdownTimer';
 import DailyRoutine from './components/DailyRoutine';
 import LanguageToggle from './components/LanguageToggle';
 import Sidebar from './components/Sidebar';
+import SplashScreen from './components/SplashScreen';
 import { useLanguage } from './context/LanguageContext';
 import AboutModal from './components/AboutModal';
 import Calendar from './components/Calendar';
@@ -15,6 +16,7 @@ function App() {
   const { t } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [simplifiedMode, setSimplifiedMode] = useState(false);
   const [showSimplifiedPanel, setShowSimplifiedPanel] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
@@ -69,6 +71,9 @@ function App() {
       minHeight: '100vh',
       background: '#fafbfc',
     }}>
+      {/* Splash Screen */}
+      {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
+
       {/* Main Content Area */}
       <div style={{
         flex: 1,
