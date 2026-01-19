@@ -23,6 +23,7 @@ function App() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRunning, setIsRunning] = useState(true);
+  const [clockSize, setClockSize] = useState(700);
 
   // Time update effect
   useEffect(() => {
@@ -197,16 +198,74 @@ function App() {
         <main style={{
           flex: 1,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           paddingTop: '60px',
+          position: 'relative',
         }}>
+          {/* Zoom Controls */}
+          <div style={{
+            position: 'absolute',
+            top: '80px',
+            left: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            zIndex: 10,
+          }}>
+            <button
+              onClick={() => setClockSize(prev => Math.min(prev + 50, 1000))}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: 'none',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '20px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                fontWeight: 'bold',
+              }}
+              title="Forstørre (Zoom In)"
+            >
+              +
+            </button>
+            <button
+              onClick={() => setClockSize(prev => Math.max(prev - 50, 400))}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: 'none',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '20px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                fontWeight: 'bold',
+              }}
+              title="Forminske (Zoom Out)"
+            >
+              −
+            </button>
+          </div>
+
           <YearClock
             simplifiedMode={simplifiedMode}
             selectedUnits={selectedUnits}
             currentTime={currentTime}
             setCurrentTime={setCurrentTime}
             hidePalettes={true}
+            clockSize={clockSize}
+            setClockSize={setClockSize}
           />
         </main>
       </div>
