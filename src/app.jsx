@@ -16,6 +16,7 @@ function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [simplifiedMode, setSimplifiedMode] = useState(false);
+  const [showSimplifiedPanel, setShowSimplifiedPanel] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [showRoutine, setShowRoutine] = useState(false);
@@ -151,10 +152,10 @@ function App() {
                     <span>❓</span> {t('nav.showHelp')}
                   </button>
                   <button
-                    onClick={() => { setSimplifiedMode(!simplifiedMode); closeMenu(); }}
+                    onClick={() => { setShowSimplifiedPanel(true); closeMenu(); }}
                     style={{ ...menuButtonStyle, marginTop: '4px' }}
                   >
-                    <span>🎯</span> {simplifiedMode ? t('nav.fullMode') : t('nav.simplifiedMode')}
+                    <span>🎯</span> {t('nav.simplifiedMode')}
                   </button>
                   <div style={{ height: '1px', background: '#eee', margin: '8px 0' }} />
                   <button
@@ -347,12 +348,62 @@ function App() {
         </div>
       )}
 
-      {/* SimplifiedMode panel - vises når enkel modus er aktivert */}
-      {simplifiedMode && (
-        <SimplifiedMode
-          selectedUnits={selectedUnits}
-          setSelectedUnits={setSelectedUnits}
-        />
+      {/* SimplifiedMode Modal */}
+      {showSimplifiedPanel && (
+        <div
+          onClick={() => setShowSimplifiedPanel(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '500px',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => setShowSimplifiedPanel(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'rgba(255,255,255,0.9)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
+                fontSize: '18px',
+                zIndex: 1010,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              }}
+            >
+              ×
+            </button>
+            <SimplifiedMode
+              selectedUnits={selectedUnits}
+              setSelectedUnits={setSelectedUnits}
+              simplifiedMode={simplifiedMode}
+              setSimplifiedMode={setSimplifiedMode}
+              onClose={() => setShowSimplifiedPanel(false)}
+            />
+          </div>
+        </div>
       )}
 
       {showPractice && (
