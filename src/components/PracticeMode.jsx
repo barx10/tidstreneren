@@ -201,12 +201,19 @@ function PracticeMode({ onClose }) {
       const wrong = generateWrongAnswers(time.hours, time.minutes);
       const allAnswers = [time, ...wrong].sort(() => Math.random() - 0.5);
       setAnswers(allAnswers);
-    } else {
-      // For "still klokka"-modus, reset brukerens klokke
+    } else if (['set', 'digitalToAnalog', 'verbalToAnalog'].includes(questionType)) {
+      // For "still klokka"-modus og lignende, reset brukerens klokke
       setUserHours(12);
       setUserMinutes(0);
+      // For verbalToAnalog, spill av tiden etter kort delay
+      if (questionType === 'verbalToAnalog') {
+        setTimeout(() => {
+          const timeText = timeToText(time.hours, time.minutes, language, t);
+          speak(timeText, language);
+        }, 500);
+      }
     }
-  }, [difficulty, questionType]);
+  }, [difficulty, questionType, language, t]);
 
   useEffect(() => {
     generateNewQuestion();
@@ -354,12 +361,36 @@ function PracticeMode({ onClose }) {
             >
               <option value="read">{t('practice.readClock')}</option>
               <option value="set">{t('practice.setClock')}</option>
+              <option value="digitalToAnalog">{t('practice.digitalToAnalog')}</option>
+              <option value="verbalToAnalog">{t('practice.verbalToAnalog')}</option>
+              <option value="timeDifference">{t('practice.timeDifference')}</option>
+              <option value="matching">{t('practice.matching')}</option>
+              <option value="ordering">{t('practice.ordering')}</option>
+              <option value="dailyRoutine">{t('practice.dailyRoutine')}</option>
             </select>
           </div>
         </div>
 
+        {/* Sjekk hvis øvelsestypen ikke er implementert ennå */}
+        {currentQuestion && !['read', 'set', 'digitalToAnalog', 'verbalToAnalog'].includes(questionType) && (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            background: '#f0f7ff',
+            borderRadius: '12px',
+            border: '2px solid #b3d9ff',
+          }}>
+            <p style={{ fontSize: '18px', color: '#2c3e50', fontWeight: '600' }}>
+              🚀 Kommer snart!
+            </p>
+            <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+              Denne øvelsestypen er under utvikling. Velg en annen type for nå.
+            </p>
+          </div>
+        )}
+
         {/* Spørsmål */}
-        {currentQuestion && (
+        {currentQuestion && ['read', 'set', 'digitalToAnalog', 'verbalToAnalog'].includes(questionType) && (
           <div>
             {questionType === 'read' ? (
               // Les klokka-modus
