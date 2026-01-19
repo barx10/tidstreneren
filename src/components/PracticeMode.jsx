@@ -354,6 +354,12 @@ function PracticeMode({ onClose }) {
             >
               <option value="read">{t('practice.readClock')}</option>
               <option value="set">{t('practice.setClock')}</option>
+              <option value="digitalToAnalog">{t('practice.digitalToAnalog')}</option>
+              <option value="verbalToAnalog">{t('practice.verbalToAnalog')}</option>
+              <option value="timeDifference">{t('practice.timeDifference')}</option>
+              <option value="matching">{t('practice.matching')}</option>
+              <option value="ordering">{t('practice.ordering')}</option>
+              <option value="dailyRoutine">{t('practice.dailyRoutine')}</option>
             </select>
           </div>
         </div>
