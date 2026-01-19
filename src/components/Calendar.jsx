@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const MONTHS_NO = [
   'Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni',
   'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'
 ];
 
+const MONTHS_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 const DAYS_SHORT = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
 
 function Calendar({ onClose, currentDate, onDateSelect }) {
+  const { t, language } = useLanguage();
   const [viewDate, setViewDate] = useState(new Date(currentDate));
   const [selectedDay, setSelectedDay] = useState(null);
+  const [importantDates, setImportantDates] = useState(() => {
+    const stored = localStorage.getItem('importantDates');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [eventName, setEventName] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const MONTHS = language === 'no' ? MONTHS_NO : MONTHS_EN;
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  
+
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
   const currentDay = currentDate.getDate();
@@ -22,12 +38,12 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  
-  // Juster slik at mandag er første dag (0 = søndag -> 6, 1 = mandag -> 0)
+
+  // Juster slik at mandag er første dag
   let startDayOfWeek = firstDay.getDay() - 1;
   if (startDayOfWeek === -1) startDayOfWeek = 6;
 
-  // Få ukenummer for første dag i måneden
+  // Få ukenummer
   const getWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -35,6 +51,21 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   };
+
+  // Beregn antall dager til en dato
+  const daysUntil = (date) => {
+    const today = new Date(currentDate);
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    const diff = target - today;
+    return Math.round(diff / (1000 * 60 * 60 * 24));
+  };
+
+  // Lagre viktige datoer
+  useEffect(() => {
+    localStorage.setItem('importantDates', JSON.stringify(importantDates));
+  }, [importantDates]);
 
   const handlePrevMonth = () => {
     setViewDate(new Date(year, month - 1, 1));
@@ -54,15 +85,40 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
     onDateSelect(newDate);
   };
 
+  const handleAddImportantDate = () => {
+    if (!selectedDate || !eventName.trim()) {
+      alert(language === 'no' ? 'Vennligst fyll inn begge felt' : 'Please fill in both fields');
+      return;
+    }
+
+    const newDate = {
+      id: Date.now(),
+      date: selectedDate,
+      event: eventName,
+    };
+
+    setImportantDates([...importantDates, newDate]);
+    setEventName('');
+    setSelectedDate(null);
+    setShowAddForm(false);
+  };
+
+  const handleRemoveImportantDate = (id) => {
+    setImportantDates(importantDates.filter(d => d.id !== id));
+  };
+
+  const getImportantDateForDay = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return importantDates.find(d => d.date === dateStr);
+  };
+
   // Generer alle dager i kalenderen
   const calendarDays = [];
-  
-  // Tomme celler før månedens start
+
   for (let i = 0; i < startDayOfWeek; i++) {
     calendarDays.push(null);
   }
-  
-  // Alle dager i måneden
+
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push(day);
   }
@@ -80,6 +136,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
       justifyContent: 'center',
       zIndex: 2000,
       padding: '20px',
+      overflowY: 'auto',
     }}>
       <div style={{
         background: 'white',
@@ -90,7 +147,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         position: 'relative',
       }}>
-        {/* Header med lukkeknapp */}
+        {/* Header */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -103,7 +160,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
             fontSize: '24px',
             fontWeight: '700',
           }}>
-            Kalender
+            {t('nav.calendar')}
           </h2>
           <button
             onClick={onClose}
@@ -126,7 +183,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
           </button>
         </div>
 
-        {/* Måned/år navigering */}
+        {/* Month navigation */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -153,16 +210,16 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
           >
             ‹
           </button>
-          
+
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: '600' }}>
-              {MONTHS_NO[month]} {year}
+              {MONTHS[month]} {year}
             </div>
             <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
-              Uke {getWeekNumber(firstDay)}
+              {language === 'no' ? 'Uke' : 'Week'} {getWeekNumber(firstDay)}
             </div>
           </div>
-          
+
           <button
             onClick={handleNextMonth}
             style={{
@@ -181,7 +238,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
           </button>
         </div>
 
-        {/* I dag-knapp */}
+        {/* Today button */}
         <div style={{ marginBottom: '16px', textAlign: 'center' }}>
           <button
             onClick={handleToday}
@@ -196,11 +253,11 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
               color: '#2c3e50',
             }}
           >
-            Gå til i dag
+            {language === 'no' ? 'Gå til i dag' : 'Go to today'}
           </button>
         </div>
 
-        {/* Ukedager header */}
+        {/* Calendar grid header */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
@@ -223,11 +280,12 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
           ))}
         </div>
 
-        {/* Kalender grid */}
+        {/* Calendar grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
           gap: '4px',
+          marginBottom: '20px',
         }}>
           {calendarDays.map((day, index) => {
             if (day === null) {
@@ -239,80 +297,286 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
             const isToday = day === currentDay && month === currentMonth && year === currentYear;
             const date = new Date(year, month, day);
             const weekNum = getWeekNumber(date);
+            const importantDate = getImportantDateForDay(day);
 
             return (
               <button
                 key={day}
                 onClick={() => handleDateClick(day)}
                 style={{
-                  padding: '12px 4px',
+                  padding: '8px 2px',
                   border: isToday ? '2px solid #667eea' : '1px solid #e0e0e0',
                   borderRadius: '8px',
-                  background: isToday 
+                  background: importantDate
+                    ? 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)'
+                    : isToday
                     ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : isWeekend 
-                      ? '#fff5f5' 
+                    : isWeekend
+                      ? '#fff5f5'
                       : 'white',
-                  color: isToday ? 'white' : isWeekend ? '#e74c3c' : '#2c3e50',
+                  color: importantDate ? 'white' : isToday ? 'white' : isWeekend ? '#e74c3c' : '#2c3e50',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '11px',
                   fontWeight: isToday ? '700' : '500',
                   transition: 'all 0.2s',
                   position: 'relative',
+                  minHeight: '45px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isToday) {
+                  if (!isToday && !importantDate) {
                     e.currentTarget.style.background = '#f0f7ff';
                     e.currentTarget.style.transform = 'scale(1.05)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isToday) {
+                  if (!isToday && !importantDate) {
                     e.currentTarget.style.background = isWeekend ? '#fff5f5' : 'white';
                     e.currentTarget.style.transform = 'scale(1)';
                   }
                 }}
-                title={`${day}. ${MONTHS_NO[month]} ${year} (uke ${weekNum})`}
+                title={`${day}. ${MONTHS[month]} ${year} (uke ${weekNum})`}
               >
-                {day}
+                <div>{day}</div>
+                {importantDate && (
+                  <div style={{ fontSize: '8px', marginTop: '2px', opacity: 0.9 }}>
+                    🎂
+                  </div>
+                )}
               </button>
             );
           })}
         </div>
 
-        {/* Info footer */}
+        {/* Important dates section */}
         <div style={{
-          marginTop: '20px',
+          marginBottom: '20px',
           padding: '12px',
           background: '#f8f9fa',
           borderRadius: '8px',
-          fontSize: '13px',
+          border: '1px solid #e0e0e0',
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px',
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#2c3e50',
+            }}>
+              {t('calendarCountdown.editTitle')}
+            </h3>
+            <button
+              onClick={() => {
+                setShowAddForm(!showAddForm);
+                setEventName('');
+                setSelectedDate(null);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              {showAddForm ? t('calendarCountdown.cancel') : t('calendarCountdown.addDate')}
+            </button>
+          </div>
+
+          {/* Add form */}
+          {showAddForm && (
+            <div style={{
+              marginBottom: '12px',
+              padding: '12px',
+              background: 'white',
+              borderRadius: '8px',
+              border: '2px solid #667eea',
+            }}>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '11px',
+                  color: '#555',
+                  marginBottom: '4px',
+                  fontWeight: '500',
+                }}>
+                  {t('calendarCountdown.whatEvent')}
+                </label>
+                <input
+                  type="text"
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  placeholder={t('calendarCountdown.eventPlaceholder')}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #ddd',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '11px',
+                  color: '#555',
+                  marginBottom: '4px',
+                  fontWeight: '500',
+                }}>
+                  {language === 'no' ? 'Velg dato' : 'Choose date'}
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate || ''}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #ddd',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <button
+                onClick={handleAddImportantDate}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  background: '#27ae60',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}
+              >
+                {t('calendarCountdown.save')}
+              </button>
+            </div>
+          )}
+
+          {/* Important dates list */}
+          {importantDates.length === 0 ? (
+            <div style={{
+              fontSize: '12px',
+              color: '#888',
+              textAlign: 'center',
+              padding: '12px',
+            }}>
+              {t('calendarCountdown.noImportantDates')}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {importantDates.map((item) => {
+                const days = daysUntil(item.date);
+                const dateObj = new Date(item.date);
+                const dateStr = `${dateObj.getDate()}. ${MONTHS[dateObj.getMonth()]}`;
+
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '8px',
+                      background: 'white',
+                      borderRadius: '6px',
+                      border: '1px solid #e0e0e0',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: '#2c3e50',
+                      }}>
+                        {item.event}
+                      </div>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#666',
+                        marginTop: '2px',
+                      }}>
+                        {dateStr} • {days === 0
+                          ? t('calendarCountdown.today')
+                          : days === 1
+                          ? `1 ${t('calendarCountdown.dayCountdown')}`
+                          : `${days} ${t('calendarCountdown.daysCountdown')}`}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveImportantDate(item.id)}
+                      style={{
+                        background: '#e74c3c',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        marginLeft: '8px',
+                      }}
+                    >
+                      {t('routine.delete')}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Info footer */}
+        <div style={{
+          padding: '12px',
+          background: '#e3f2fd',
+          borderRadius: '8px',
+          fontSize: '12px',
           color: '#555',
           textAlign: 'center',
+          border: '2px solid #90caf9',
         }}>
           {selectedDay ? (() => {
-            const selectedDate = new Date(year, month, selectedDay);
+            const selectedDateObj = new Date(year, month, selectedDay);
             const today = new Date(currentDate);
-            
-            // Sett begge datoer til midnatt for korrekt dagtelling
-            selectedDate.setHours(0, 0, 0, 0);
+
+            selectedDateObj.setHours(0, 0, 0, 0);
             today.setHours(0, 0, 0, 0);
-            
-            const diffTime = selectedDate - today;
+
+            const diffTime = selectedDateObj - today;
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-            
+
             if (diffDays === 0) {
-              return '📅 I dag';
+              return '📅 ' + (language === 'no' ? 'I dag' : 'Today');
             } else if (diffDays === 1) {
-              return '📅 I morgen (1 dag til)';
+              return language === 'no' ? '📅 I morgen (1 dag til)' : '📅 Tomorrow (1 day)';
             } else if (diffDays === -1) {
-              return '📅 I går (1 dag siden)';
+              return language === 'no' ? '📅 I går (1 dag siden)' : '📅 Yesterday (1 day ago)';
             } else if (diffDays > 0) {
-              return `📅 ${diffDays} dager til`;
+              return `📅 ${diffDays} ${language === 'no' ? 'dager til' : 'days'}`;
             } else {
-              return `📅 ${Math.abs(diffDays)} dager siden`;
+              return `📅 ${Math.abs(diffDays)} ${language === 'no' ? 'dager siden' : 'days ago'}`;
             }
-          })() : '💡 Klikk på en dato for å hoppe til den dagen på klokka'}
+          })() : language === 'no'
+            ? '💡 Klikk på en dato for å hoppe til den dagen på klokka'
+            : '💡 Click on a date to jump to that day on the clock'}
         </div>
       </div>
     </div>

@@ -300,6 +300,21 @@ export const translations = {
       itIsIn: 'Det er',
     },
 
+    // Calendar Countdown
+    calendarCountdown: {
+      addDate: '+ Legg til viktig dato',
+      editTitle: 'Rediger viktige datoer',
+      whatEvent: 'Hva skal skje?',
+      eventPlaceholder: 'F.eks. Bursdagen min, Påske',
+      dayCountdown: 'dag til',
+      daysCountdown: 'dager til',
+      today: 'I dag!',
+      removeDate: 'Fjern',
+      noImportantDates: 'Ingen viktige datoer lagt til ennå',
+      save: 'Lagre',
+      cancel: 'Avbryt',
+    },
+
     // Language toggle
     language: {
       no: 'Norsk',
@@ -606,6 +621,21 @@ export const translations = {
       isAt: 'is at',
       and: 'and',
       itIsIn: 'It is',
+    },
+
+    // Calendar Countdown
+    calendarCountdown: {
+      addDate: '+ Add important date',
+      editTitle: 'Edit important dates',
+      whatEvent: 'What will happen?',
+      eventPlaceholder: 'E.g. My birthday, Easter',
+      dayCountdown: 'day to',
+      daysCountdown: 'days to',
+      today: 'Today!',
+      removeDate: 'Remove',
+      noImportantDates: 'No important dates added yet',
+      save: 'Save',
+      cancel: 'Cancel',
     },
 
     // Language toggle
