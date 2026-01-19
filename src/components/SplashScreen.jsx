@@ -63,7 +63,7 @@ function SplashScreen({ onClose }) {
           textAlign: 'center',
         }}
       >
-        {/* Illustration placeholder */}
+        {/* Illustration - place image at public/splash-illustration.png or src/assets/splash-illustration.png */}
         <div
           style={{
             width: '100%',
