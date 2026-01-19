@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
-function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
+function SimplifiedMode({ selectedUnits, setSelectedUnits, simplifiedMode, setSimplifiedMode, onClose }) {
   const { t } = useLanguage();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const UNIT_CONFIG = [
     { key: 'year', label: t('simplified.year'), color: '#16a085' },
@@ -23,62 +22,43 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
 
   const selectedCount = Object.values(selectedUnits).filter(Boolean).length;
 
+  const handleEnableSimplified = () => {
+    if (selectedCount > 0) {
+      setSimplifiedMode(true);
+      if (onClose) onClose();
+    }
+  };
+
+  const handleDisableSimplified = () => {
+    setSimplifiedMode(false);
+    if (onClose) onClose();
+  };
+
   return (
     <div style={{
-      position: 'fixed',
-      right: 20,
-      top: 140,
-      width: '280px',
-      background: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-      zIndex: 999,
-      border: '3px solid #667eea',
-      overflow: 'hidden',
+      padding: '32px 24px 24px 24px',
+      width: '100%',
+      maxWidth: '100%',
     }}>
-      {/* Header med kollaps-knapp */}
+      {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '12px 16px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        gap: '10px',
+        marginBottom: '20px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '20px' }}>🎯</span>
-          <h3 style={{
-            margin: 0,
-            fontSize: '14px',
-            color: 'white',
-            fontWeight: '600'
-          }}>
-            {t('simplified.title')}
-          </h3>
-        </div>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            background: 'rgba(255,255,255,0.2)',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: 'pointer',
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '14px',
-            fontWeight: 'bold',
-          }}
-          title={isCollapsed ? t('help.expand') : t('help.minimize')}
-        >
-          {isCollapsed ? '+' : '−'}
-        </button>
+        <span style={{ fontSize: '28px' }}>🎯</span>
+        <h2 style={{
+          margin: 0,
+          fontSize: '24px',
+          color: '#2c3e50',
+          fontWeight: '600'
+        }}>
+          {t('simplified.title')}
+        </h2>
       </div>
 
-      {!isCollapsed && (
-        <div style={{ padding: '16px' }}>
+      <div style={{ padding: '0' }}>
           <p style={{
             fontSize: '14px',
             color: '#555',
@@ -158,12 +138,51 @@ function SimplifiedMode({ selectedUnits, setSelectedUnits }) {
             borderRadius: '8px',
             fontSize: '13px',
             color: '#1a5490',
-            lineHeight: '1.5'
+            lineHeight: '1.5',
+            marginBottom: '20px'
           }}>
             <strong>💡 {t('simplified.tip')}</strong> {t('simplified.tipText')}
           </div>
+
+          {/* Action Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'flex-end',
+          }}>
+            <button
+              onClick={handleDisableSimplified}
+              style={{
+                padding: '10px 20px',
+                background: '#f0f0f0',
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#555',
+              }}
+            >
+              {t('nav.fullMode')}
+            </button>
+            <button
+              onClick={handleEnableSimplified}
+              disabled={selectedCount === 0}
+              style={{
+                padding: '10px 20px',
+                background: selectedCount > 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#ccc',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: selectedCount > 0 ? 'pointer' : 'not-allowed',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'white',
+              }}
+            >
+              {t('nav.simplifiedMode')}
+            </button>
+          </div>
         </div>
-      )}
     </div>
   );
 }
