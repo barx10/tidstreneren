@@ -94,13 +94,12 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false, clockSize: propClockSize, setClockSize: propSetClockSize }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false, clockSize: propClockSize, setClockSize: propSetClockSize, isRunning = true }) {
   const { t, language } = useLanguage();
   const months = t('months');
   const [internalClockSize, setInternalClockSize] = useState(hidePalettes ? 600 : 700);
   const clockSize = propClockSize !== undefined ? propClockSize : internalClockSize;
   const setClockSize = propSetClockSize || setInternalClockSize;
-  const [isRunning, setIsRunning] = useState(true);
   const [isDragging, setIsDragging] = useState(null);
   const [isDraggingHand, setIsDraggingHand] = useState(null);
   const svgRef = useRef(null);
@@ -921,12 +920,14 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
               {t('clock.setNow')}
             </button>
             <button
-              onClick={() => setIsRunning(!isRunning)}
+              disabled
               style={{
                 minWidth: '90px',
                 background: isRunning
                   ? 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'
-                  : 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)'
+                  : 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)',
+                opacity: 0.6,
+                cursor: 'not-allowed'
               }}
             >
               {isRunning ? t('clock.stop') : t('clock.start')}
