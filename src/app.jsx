@@ -272,6 +272,7 @@ function App() {
             hidePalettes={true}
             clockSize={clockSize}
             setClockSize={setClockSize}
+            isRunning={isRunning}
           />
         </main>
       </div>
