@@ -285,42 +285,6 @@ function Sidebar({
         </div>
       </div>
 
-      {/* Legend */}
-      <div style={sectionStyle}>
-        <div style={labelStyle}>{t('clock.legend')}</div>
-        <div style={{ fontSize: '12px' }}>
-          {(!simplifiedMode || selectedUnits?.months) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS.months }} />
-              <span style={{ color: '#555' }}>{t('clock.monthsLabel')}</span>
-            </div>
-          )}
-          {(!simplifiedMode || selectedUnits?.days) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS.days }} />
-              <span style={{ color: '#555' }}>{t('clock.daysLabel')}</span>
-            </div>
-          )}
-          {(!simplifiedMode || selectedUnits?.hours) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS.hours }} />
-              <span style={{ color: '#555' }}>{t('clock.hoursLabel')}</span>
-            </div>
-          )}
-          {(!simplifiedMode || selectedUnits?.minutes) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS.minutes }} />
-              <span style={{ color: '#555' }}>{t('clock.minutesLabel')}</span>
-            </div>
-          )}
-          {(!simplifiedMode || selectedUnits?.seconds) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS.seconds }} />
-              <span style={{ color: '#555' }}>{t('clock.secondsLabel')}</span>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

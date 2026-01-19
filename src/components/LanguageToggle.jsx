@@ -19,12 +19,12 @@ function LanguageToggle() {
         boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
+        gap: '4px',
       }}
       title={language === 'no' ? 'Switch to English' : 'Bytt til norsk'}
     >
       <span style={{ fontSize: '16px' }}>{language === 'no' ? '🇳🇴' : '🇬🇧'}</span>
-      <span>{language === 'no' ? 'NO' : 'EN'}</span>
+      {language === 'no' ? 'NO' : 'EN'}
     </button>
   );
 }

@@ -94,10 +94,12 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false, clockSize: propClockSize, setClockSize: propSetClockSize }) {
   const { t, language } = useLanguage();
   const months = t('months');
-  const [clockSize, setClockSize] = useState(hidePalettes ? 600 : 700);
+  const [internalClockSize, setInternalClockSize] = useState(hidePalettes ? 600 : 700);
+  const clockSize = propClockSize !== undefined ? propClockSize : internalClockSize;
+  const setClockSize = propSetClockSize || setInternalClockSize;
   const [isRunning, setIsRunning] = useState(true);
   const [isDragging, setIsDragging] = useState(null);
   const [isDraggingHand, setIsDraggingHand] = useState(null);
