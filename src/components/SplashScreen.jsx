@@ -11,7 +11,7 @@ function SplashScreen({ onClose }) {
     const img = new Image();
     img.onload = () => setShowImage(true);
     img.onerror = () => setShowImage(false);
-    img.src = '/splash-illustration.png';
+    img.src = '/splash-illustrations.png';
 
     // Auto-close splash screen after 4 seconds
     const timer = setTimeout(() => {
@@ -88,7 +88,7 @@ function SplashScreen({ onClose }) {
         >
           {showImage ? (
             <img
-              src="/splash-illustration.png"
+              src="/splash-illustrations.png"
               alt="Tidstreneren"
               style={{
                 width: '100%',
