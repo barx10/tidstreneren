@@ -267,10 +267,10 @@ function PracticeMode({ onClose }) {
             border: '2px solid #b3d9ff',
           }}>
             <p style={{ fontSize: '18px', color: '#2c3e50', fontWeight: '600' }}>
-              🚀 Kommer snart!
+              🚀 {t('practice.comingSoon')}
             </p>
             <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-              Denne øvelsestypen er under utvikling. Velg en annen type for nå.
+              {t('practice.comingSoonDesc')}
             </p>
           </div>
         )}

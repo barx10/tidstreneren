@@ -11,6 +11,9 @@ export const translations = {
       myDay: 'Min dag',
       calendar: 'Kalender',
       about: 'Om',
+      menu: 'Meny',
+      zoomIn: 'Forstørre (Zoom In)',
+      zoomOut: 'Forminske (Zoom Out)',
     },
 
     // HelpBox
@@ -213,6 +216,8 @@ export const translations = {
       tipDailyRoutine: 'Gjett når du gjør daglige aktiviteter.',
       hours: 'Timer',
       minutes: 'Minutter',
+      comingSoon: 'Kommer snart!',
+      comingSoonDesc: 'Denne øvelsestypen er under utvikling. Velg en annen type for nå.',
     },
 
     // Time expressions for speech
@@ -334,6 +339,9 @@ export const translations = {
       myDay: 'My day',
       calendar: 'Calendar',
       about: 'About',
+      menu: 'Menu',
+      zoomIn: 'Zoom In',
+      zoomOut: 'Zoom Out',
     },
 
     // HelpBox
@@ -536,6 +544,8 @@ export const translations = {
       tipDailyRoutine: 'Guess when you do daily activities.',
       hours: 'Hours',
       minutes: 'Minutes',
+      comingSoon: 'Coming soon!',
+      comingSoonDesc: 'This exercise type is under development. Choose another type for now.',
     },
 
     // Time expressions for speech

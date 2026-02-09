@@ -8,6 +8,7 @@ import DailyRoutine from './components/DailyRoutine';
 import LanguageToggle from './components/LanguageToggle';
 import Sidebar from './components/Sidebar';
 import SplashScreen from './components/SplashScreen';
+import Modal from './components/Modal';
 import { useLanguage } from './context/LanguageContext';
 import AboutModal from './components/AboutModal';
 import Calendar from './components/Calendar';
@@ -15,15 +16,9 @@ import Calendar from './components/Calendar';
 function App() {
   const { t } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [activeModal, setActiveModal] = useState(null);
   const [simplifiedMode, setSimplifiedMode] = useState(false);
-  const [showSimplifiedPanel, setShowSimplifiedPanel] = useState(false);
-  const [showPractice, setShowPractice] = useState(false);
-  const [showCountdown, setShowCountdown] = useState(false);
-  const [showRoutine, setShowRoutine] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRunning, setIsRunning] = useState(true);
   const [clockSize, setClockSize] = useState(700);
@@ -64,6 +59,8 @@ function App() {
   };
 
   const closeMenu = () => setShowMenu(false);
+  const closeModal = () => setActiveModal(null);
+  const openModal = (modal) => { setActiveModal(modal); closeMenu(); };
 
   return (
     <div style={{
@@ -133,7 +130,7 @@ function App() {
                 }}
               >
                 <span style={{ fontSize: '18px' }}>☰</span>
-                Meny
+                {t('nav.menu')}
               </button>
 
               {/* Dropdown Menu */}
@@ -151,45 +148,45 @@ function App() {
                   zIndex: 1000,
                 }}>
                   <button
-                    onClick={() => { setShowHelp(true); closeMenu(); }}
+                    onClick={() => openModal('help')}
                     style={menuButtonStyle}
                   >
                     <span>❓</span> {t('nav.showHelp')}
                   </button>
                   <button
-                    onClick={() => { setShowSimplifiedPanel(true); closeMenu(); }}
+                    onClick={() => openModal('simplified')}
                     style={{ ...menuButtonStyle, marginTop: '4px' }}
                   >
                     <span>🎯</span> {t('nav.simplifiedMode')}
                   </button>
                   <div style={{ height: '1px', background: '#eee', margin: '8px 0' }} />
                   <button
-                    onClick={() => { setShowPractice(true); closeMenu(); }}
+                    onClick={() => openModal('practice')}
                     style={{ ...menuButtonStyle }}
                   >
                     <span>📝</span> {t('nav.exercises')}
                   </button>
                   <button
-                    onClick={() => { setShowCountdown(true); closeMenu(); }}
+                    onClick={() => openModal('countdown')}
                     style={{ ...menuButtonStyle, marginTop: '4px' }}
                   >
                     <span>⏳</span> {t('nav.countdown')}
                   </button>
                   <button
-                    onClick={() => { setShowRoutine(true); closeMenu(); }}
+                    onClick={() => openModal('routine')}
                     style={{ ...menuButtonStyle, marginTop: '4px' }}
                   >
                     <span>📅</span> {t('nav.myDay')}
                   </button>
                   <button
-                    onClick={() => { setShowCalendar(true); closeMenu(); }}
+                    onClick={() => openModal('calendar')}
                     style={{ ...menuButtonStyle, marginTop: '4px' }}
                   >
                     <span>🗓️</span> {t('nav.calendar')}
                   </button>
                   <div style={{ height: '1px', background: '#eee', margin: '8px 0' }} />
                   <button
-                    onClick={() => { setShowAbout(true); closeMenu(); }}
+                    onClick={() => openModal('about')}
                     style={{ ...menuButtonStyle }}
                   >
                     <span>ℹ️</span> {t('nav.about')}
@@ -237,7 +234,7 @@ function App() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 fontWeight: 'bold',
               }}
-              title="Forstørre (Zoom In)"
+              title={t('nav.zoomIn')}
             >
               +
             </button>
@@ -258,7 +255,7 @@ function App() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 fontWeight: 'bold',
               }}
-              title="Forminske (Zoom Out)"
+              title={t('nav.zoomOut')}
             >
               −
             </button>
@@ -303,134 +300,43 @@ function App() {
       )}
 
       {/* Modals */}
-      {showHelp && (
-        <div 
-          onClick={() => setShowHelp(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-          }}
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'white',
-              borderRadius: '16px',
-              maxWidth: '800px',
-              maxHeight: '80vh',
-              overflow: 'auto',
-              position: 'relative',
-            }}
-          >
-            <button
-              onClick={() => setShowHelp(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                zIndex: 1010,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              ×
-            </button>
-            <HelpBox />
-          </div>
-        </div>
+      {activeModal === 'help' && (
+        <Modal onClose={closeModal} maxWidth="800px">
+          <HelpBox />
+        </Modal>
       )}
 
-      {/* SimplifiedMode Modal */}
-      {showSimplifiedPanel && (
-        <div
-          onClick={() => setShowSimplifiedPanel(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'white',
-              borderRadius: '16px',
-              maxWidth: '500px',
-              maxHeight: '80vh',
-              overflow: 'auto',
-              position: 'relative',
-            }}
-          >
-            <button
-              onClick={() => setShowSimplifiedPanel(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                zIndex: 1010,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              ×
-            </button>
-            <SimplifiedMode
-              selectedUnits={selectedUnits}
-              setSelectedUnits={setSelectedUnits}
-              simplifiedMode={simplifiedMode}
-              setSimplifiedMode={setSimplifiedMode}
-              onClose={() => setShowSimplifiedPanel(false)}
-            />
-          </div>
-        </div>
+      {activeModal === 'simplified' && (
+        <Modal onClose={closeModal} maxWidth="500px">
+          <SimplifiedMode
+            selectedUnits={selectedUnits}
+            setSelectedUnits={setSelectedUnits}
+            simplifiedMode={simplifiedMode}
+            setSimplifiedMode={setSimplifiedMode}
+            onClose={closeModal}
+          />
+        </Modal>
       )}
 
-      {showPractice && (
-        <PracticeMode onClose={() => setShowPractice(false)} />
+      {activeModal === 'practice' && (
+        <PracticeMode onClose={closeModal} />
       )}
 
-      {showCountdown && (
-        <CountdownTimer onClose={() => setShowCountdown(false)} />
+      {activeModal === 'countdown' && (
+        <CountdownTimer onClose={closeModal} />
       )}
 
-      {showRoutine && (
-        <DailyRoutine onClose={() => setShowRoutine(false)} />
+      {activeModal === 'routine' && (
+        <DailyRoutine onClose={closeModal} />
       )}
 
-      {showAbout && (
-        <AboutModal onClose={() => setShowAbout(false)} />
+      {activeModal === 'about' && (
+        <AboutModal onClose={closeModal} />
       )}
 
-      {showCalendar && (
+      {activeModal === 'calendar' && (
         <Calendar
-          onClose={() => setShowCalendar(false)}
+          onClose={closeModal}
           currentDate={currentTime}
           onDateSelect={setCurrentTime}
         />
