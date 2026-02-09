@@ -98,6 +98,9 @@ function AboutModal({ onClose }) {
             <p style={{ margin: '0 0 16px 0' }}>
               Lærer og hobbyprogrammerer som lager digitale verktøy for å gjøre hverdagen litt enklere og mer kreativ.
             </p>
+            <p style={{ margin: '0 0 16px 0' }}>
+              Takk til Anders Bjarby for prosjektidé.
+            </p>
           </div>
 
           {/* Kontaktinformasjon */}
