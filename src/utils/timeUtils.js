@@ -35,22 +35,43 @@ export function setDayOfYear(date, dayOfYear) {
   return newDate;
 }
 
-// Konverter tid til norsk talespråk
+// Konverter tid til tekst basert på språk
+export function timeToText(hours, minutes, language = 'no') {
+  if (language === 'no') {
+    const nextHour = hours === 12 ? 1 : hours + 1;
+    if (minutes === 0) return `klokka ${hours}`;
+    if (minutes === 15) return `kvart over ${hours}`;
+    if (minutes === 30) return `halv ${nextHour}`;
+    if (minutes === 45) return `kvart på ${nextHour}`;
+    if (minutes < 30) return `${minutes} over ${hours}`;
+    return `${60 - minutes} på ${nextHour}`;
+  } else {
+    const nextHour = hours === 12 ? 1 : hours + 1;
+    if (minutes === 0) return `${hours} o'clock`;
+    if (minutes === 15) return `quarter past ${hours}`;
+    if (minutes === 30) return `half past ${hours}`;
+    if (minutes === 45) return `quarter to ${nextHour}`;
+    if (minutes < 30) return `${minutes} past ${hours}`;
+    return `${60 - minutes} to ${nextHour}`;
+  }
+}
+
+// Konverter tid til norsk talespråk (detaljert versjon med perioder)
 export function timeToNorwegian(hours, minutes) {
   const period = hours < 12 ? 'på formiddagen' : hours < 18 ? 'på ettermiddagen' : 'på kvelden';
   const h12 = hours % 12 || 12;
   const nextH12 = (hours + 1) % 12 || 12;
-  
+
   const numberWords = [
-    'tolv', 'ett', 'to', 'tre', 'fire', 'fem', 
+    'tolv', 'ett', 'to', 'tre', 'fire', 'fem',
     'seks', 'sju', 'åtte', 'ni', 'ti', 'elleve', 'tolv'
   ];
-  
+
   if (minutes === 0) return `${numberWords[h12]} ${period}`;
   if (minutes === 15) return `kvart over ${numberWords[h12]} ${period}`;
   if (minutes === 30) return `halv ${numberWords[nextH12]} ${period}`;
   if (minutes === 45) return `kvart på ${numberWords[nextH12]} ${period}`;
-  
+
   if (minutes < 30) {
     if (minutes === 5) return `fem over ${numberWords[h12]} ${period}`;
     if (minutes === 10) return `ti over ${numberWords[h12]} ${period}`;

@@ -1,15 +1,8 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { speak } from '../utils/speechUtils';
-
-const COLORS = {
-  year: '#16a085',
-  months: '#e67e22',
-  days: '#27ae60',
-  hours: '#2980b9',
-  minutes: '#8e44ad',
-  seconds: '#c0392b',
-};
+import { COLORS } from '../constants/colors';
+import AnalogClock from './AnalogClock';
 
 function Sidebar({
   currentTime,
@@ -53,10 +46,7 @@ function Sidebar({
     ? `${day}. ${months[month].toLowerCase()} ${year}`
     : `${months[month]} ${day}, ${year}`;
 
-  // Analog clock calculations
-  const hourAngle = (hours % 12 + minutes / 60) * 30;
-  const minuteAngle = (minutes + seconds / 60) * 6;
-  const secondAngle = seconds * 6;
+  const showSeconds = !simplifiedMode || selectedUnits?.seconds;
 
   const sectionStyle = {
     background: 'white',
@@ -149,48 +139,15 @@ function Sidebar({
       {/* Analog Clock */}
       <div style={sectionStyle}>
         <div style={labelStyle}>{t('clock.analogClock')}</div>
-        <svg width="100%" viewBox="0 0 120 120" style={{ display: 'block', maxWidth: '150px', margin: '0 auto' }}>
-          <circle cx="60" cy="60" r="55" fill="#f8f9fa" stroke="#e0e0e0" strokeWidth="2"/>
-          {[...Array(12)].map((_, i) => {
-            const num = i === 0 ? 12 : i;
-            const angle = (i * 30 - 90) * (Math.PI / 180);
-            return (
-              <text
-                key={i}
-                x={60 + 40 * Math.cos(angle)}
-                y={60 + 40 * Math.sin(angle)}
-                fill="#2c3e50"
-                fontSize="12"
-                fontWeight="600"
-                textAnchor="middle"
-                dominantBaseline="middle"
-              >
-                {num}
-              </text>
-            );
-          })}
-          <line
-            x1="60" y1="60"
-            x2={60 + 25 * Math.sin(hourAngle * Math.PI / 180)}
-            y2={60 - 25 * Math.cos(hourAngle * Math.PI / 180)}
-            stroke={COLORS.hours} strokeWidth="4" strokeLinecap="round"
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <AnalogClock
+            hours={hours}
+            minutes={minutes}
+            seconds={seconds}
+            size={150}
+            showSeconds={showSeconds}
           />
-          <line
-            x1="60" y1="60"
-            x2={60 + 35 * Math.sin(minuteAngle * Math.PI / 180)}
-            y2={60 - 35 * Math.cos(minuteAngle * Math.PI / 180)}
-            stroke={COLORS.minutes} strokeWidth="3" strokeLinecap="round"
-          />
-          {(!simplifiedMode || selectedUnits?.seconds) && (
-            <line
-              x1="60" y1="60"
-              x2={60 + 38 * Math.sin(secondAngle * Math.PI / 180)}
-              y2={60 - 38 * Math.cos(secondAngle * Math.PI / 180)}
-              stroke={COLORS.seconds} strokeWidth="1.5" strokeLinecap="round"
-            />
-          )}
-          <circle cx="60" cy="60" r="4" fill="#2c3e50"/>
-        </svg>
+        </div>
       </div>
 
       {/* Controls */}

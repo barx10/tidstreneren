@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { speak, initVoices } from '../utils/speechUtils';
 import { useLanguage } from '../context/LanguageContext';
-
-const COLORS = {
-  hours: '#2980b9',
-  minutes: '#8e44ad',
-};
+import { COLORS } from '../constants/colors';
+import { timeToText } from '../utils/timeUtils';
+import AnalogClock from './AnalogClock';
 
 // Genererer tilfeldig tid
 function generateRandomTime(difficulty = 'easy') {
@@ -26,45 +24,6 @@ function generateRandomTime(difficulty = 'easy') {
   }
 
   return { hours, minutes };
-}
-
-// Formaterer tid til tekst basert på språk
-function timeToText(hours, minutes, language, t) {
-  if (language === 'no') {
-    if (minutes === 0) {
-      return `klokka ${hours}`;
-    } else if (minutes === 15) {
-      return `kvart over ${hours}`;
-    } else if (minutes === 30) {
-      const nextHour = hours === 12 ? 1 : hours + 1;
-      return `halv ${nextHour}`;
-    } else if (minutes === 45) {
-      const nextHour = hours === 12 ? 1 : hours + 1;
-      return `kvart på ${nextHour}`;
-    } else if (minutes < 30) {
-      return `${minutes} over ${hours}`;
-    } else {
-      const nextHour = hours === 12 ? 1 : hours + 1;
-      return `${60 - minutes} på ${nextHour}`;
-    }
-  } else {
-    // English
-    if (minutes === 0) {
-      return `${hours} o'clock`;
-    } else if (minutes === 15) {
-      return `quarter past ${hours}`;
-    } else if (minutes === 30) {
-      return `half past ${hours}`;
-    } else if (minutes === 45) {
-      const nextHour = hours === 12 ? 1 : hours + 1;
-      return `quarter to ${nextHour}`;
-    } else if (minutes < 30) {
-      return `${minutes} past ${hours}`;
-    } else {
-      const nextHour = hours === 12 ? 1 : hours + 1;
-      return `${60 - minutes} to ${nextHour}`;
-    }
-  }
 }
 
 // Formaterer tid digitalt
@@ -98,79 +57,6 @@ function generateWrongAnswers(correctHours, correctMinutes, count = 3) {
   }
 
   return answers;
-}
-
-function AnalogClockDisplay({ hours, minutes, size = 160 }) {
-  const hourAngle = (hours % 12 + minutes / 60) * 30;
-  const minuteAngle = minutes * 6;
-  const center = size / 2;
-  const radius = size / 2 - 10;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={center} cy={center} r={radius} fill="#f8f9fa" stroke="#e0e0e0" strokeWidth="3"/>
-
-      {/* Tall */}
-      {[...Array(12)].map((_, i) => {
-        const num = i === 0 ? 12 : i;
-        const angle = (i * 30 - 90) * (Math.PI / 180);
-        const x = center + (radius - 20) * Math.cos(angle);
-        const y = center + (radius - 20) * Math.sin(angle);
-        return (
-          <text
-            key={i}
-            x={x}
-            y={y}
-            fill="#2c3e50"
-            fontSize={size / 10}
-            fontWeight="600"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            {num}
-          </text>
-        );
-      })}
-
-      {/* Timemarkører */}
-      {[...Array(12)].map((_, i) => {
-        const angle = (i * 30 - 90) * (Math.PI / 180);
-        const x1 = center + (radius - 5) * Math.cos(angle);
-        const y1 = center + (radius - 5) * Math.sin(angle);
-        const x2 = center + radius * Math.cos(angle);
-        const y2 = center + radius * Math.sin(angle);
-        return (
-          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#aaa" strokeWidth="2"/>
-        );
-      })}
-
-      {/* Timeviser */}
-      <line
-        x1={center}
-        y1={center}
-        x2={center + (radius * 0.5) * Math.sin(hourAngle * Math.PI / 180)}
-        y2={center - (radius * 0.5) * Math.cos(hourAngle * Math.PI / 180)}
-        stroke={COLORS.hours}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-
-      {/* Minuttviser */}
-      <line
-        x1={center}
-        y1={center}
-        x2={center + (radius * 0.7) * Math.sin(minuteAngle * Math.PI / 180)}
-        y2={center - (radius * 0.7) * Math.cos(minuteAngle * Math.PI / 180)}
-        stroke={COLORS.minutes}
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-
-      {/* Senter */}
-      <circle cx={center} cy={center} r="5" fill="#2c3e50"/>
-    </svg>
-  );
 }
 
 function PracticeMode({ onClose }) {
@@ -208,12 +94,12 @@ function PracticeMode({ onClose }) {
       // For verbalToAnalog, spill av tiden etter kort delay
       if (questionType === 'verbalToAnalog') {
         setTimeout(() => {
-          const timeText = timeToText(time.hours, time.minutes, language, t);
+          const timeText = timeToText(time.hours, time.minutes, language);
           speak(timeText, language);
         }, 500);
       }
     }
-  }, [difficulty, questionType, language, t]);
+  }, [difficulty, questionType, language]);
 
   useEffect(() => {
     generateNewQuestion();
@@ -400,7 +286,7 @@ function PracticeMode({ onClose }) {
                     {t('practice.whatTime')}
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <AnalogClockDisplay
+                    <AnalogClock
                       hours={currentQuestion.hours}
                       minutes={currentQuestion.minutes}
                       size={180}
@@ -449,7 +335,7 @@ function PracticeMode({ onClose }) {
                           {timeToDigital(answer.hours, answer.minutes)}
                         </div>
                         <div style={{ fontSize: '13px', color: '#666' }}>
-                          {timeToText(answer.hours, answer.minutes, language, t)}
+                          {timeToText(answer.hours, answer.minutes, language)}
                         </div>
                       </button>
                     );
@@ -473,10 +359,10 @@ function PracticeMode({ onClose }) {
                       {timeToDigital(currentQuestion.hours, currentQuestion.minutes)}
                     </div>
                     <div style={{ fontSize: '16px', color: '#666', marginTop: '5px' }}>
-                      {timeToText(currentQuestion.hours, currentQuestion.minutes, language, t)}
+                      {timeToText(currentQuestion.hours, currentQuestion.minutes, language)}
                     </div>
                     <button
-                      onClick={() => speak(timeToText(currentQuestion.hours, currentQuestion.minutes, language, t), language)}
+                      onClick={() => speak(timeToText(currentQuestion.hours, currentQuestion.minutes, language), language)}
                       style={{
                         marginTop: '10px',
                         padding: '8px 16px',
@@ -494,7 +380,7 @@ function PracticeMode({ onClose }) {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                  <AnalogClockDisplay
+                  <AnalogClock
                     hours={userHours}
                     minutes={userMinutes}
                     size={180}
@@ -653,7 +539,7 @@ function PracticeMode({ onClose }) {
                 {!isCorrect && (
                   <div style={{ fontSize: '14px', color: '#721c24', marginBottom: '10px' }}>
                     {t('practice.correctWas')} <strong>{timeToDigital(currentQuestion.hours, currentQuestion.minutes)}</strong>
-                    {' '}({timeToText(currentQuestion.hours, currentQuestion.minutes, language, t)})
+                    {' '}({timeToText(currentQuestion.hours, currentQuestion.minutes, language)})
                   </div>
                 )}
                 <button
