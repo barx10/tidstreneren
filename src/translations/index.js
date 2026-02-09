@@ -320,6 +320,13 @@ export const translations = {
       cancel: 'Avbryt',
     },
 
+    // Splash screen
+    splash: {
+      subtitle: 'Lær å forstå tid på en enkel og morsom måte',
+      getStarted: 'Kom i gang',
+      autoClose: 'Trykk hvor som helst for å starte',
+    },
+
     // Language toggle
     language: {
       no: 'Norsk',
@@ -646,6 +653,13 @@ export const translations = {
       noImportantDates: 'No important dates added yet',
       save: 'Save',
       cancel: 'Cancel',
+    },
+
+    // Splash screen
+    splash: {
+      subtitle: 'Learn to understand time in a simple and fun way',
+      getStarted: 'Get started',
+      autoClose: 'Tap anywhere to start',
     },
 
     // Language toggle
