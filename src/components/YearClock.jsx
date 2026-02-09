@@ -97,6 +97,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const svgRef = useRef(null);
   const analogClockRef = useRef(null);
   const lastDraggedMonth = useRef(null);
+  const currentTimeRef = useRef(currentTime);
 
   const [palettePositions, setPalettePositions] = useState({
     size: { x: 20, y: 500 },
@@ -130,6 +131,11 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
       };
     });
   }, []);
+
+  // Keep ref in sync (used by drag handlers to avoid stale closures)
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
 
   // Extract time components
   const year = currentTime.getFullYear();
@@ -240,9 +246,12 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const handleMouseMove = useCallback((e) => {
     if (!isDragging || !svgRef.current) return;
 
+    // Use screen coordinates for center calculation (works at any clockSize)
     const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - cx;
-    const y = e.clientY - rect.top - cy;
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const x = e.clientX - centerX;
+    const y = e.clientY - centerY;
     let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
     if (angle < 0) angle += 360;
 
@@ -250,7 +259,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
     if (!ring) return;
 
     const newValue = Math.floor((angle / 360) * ring.count);
-    const newDate = new Date(currentTime);
+    const newDate = new Date(currentTimeRef.current);
 
     switch (isDragging) {
       case 'months':
@@ -259,10 +268,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
         if (prevMonth !== null) {
           // Sjekk om vi krysser desember/januar-grensen
           if (prevMonth >= 10 && newValue <= 2) {
-            // Drar fra desember-området til januar-området -> øk året
             newDate.setFullYear(newDate.getFullYear() + 1);
           } else if (prevMonth <= 2 && newValue >= 10) {
-            // Drar fra januar-området til desember-området -> reduser året
             newDate.setFullYear(newDate.getFullYear() - 1);
           }
         }
@@ -284,7 +291,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
     }
 
     setCurrentTime(newDate);
-  }, [isDragging, ringConfig, currentTime, cx, cy]);
+  }, [isDragging, ringConfig, setCurrentTime]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
