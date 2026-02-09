@@ -552,74 +552,71 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
             );
           })}
 
-          {/* Center time display */}
-          <text x={cx} y={cy - 16} textAnchor="middle" fontWeight="bold" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
+        </svg>
+      </div>
+
+      {/* Time and date display below the clock */}
+      <div style={{
+        textAlign: 'center',
+        marginTop: '16px',
+        fontFamily: 'Georgia, serif',
+      }}>
+        <div style={{ fontWeight: 'bold', fontSize: '28px', lineHeight: 1.2 }}>
+          {simplifiedMode ? (
+            <>
+              {selectedUnits.hours && (
+                <span style={{ color: COLORS.hours }}>{String(hours).padStart(2, '0')}</span>
+              )}
+              {selectedUnits.hours && selectedUnits.minutes && (
+                <span style={{ color: '#7f8c8d' }}>:</span>
+              )}
+              {selectedUnits.minutes && (
+                <span style={{ color: COLORS.minutes }}>{String(minutes).padStart(2, '0')}</span>
+              )}
+              {(selectedUnits.hours || selectedUnits.minutes) && selectedUnits.seconds && (
+                <span style={{ color: '#7f8c8d' }}>:</span>
+              )}
+              {selectedUnits.seconds && (
+                <span style={{ color: COLORS.seconds }}>{String(seconds).padStart(2, '0')}</span>
+              )}
+            </>
+          ) : (
+            <>
+              <span style={{ color: COLORS.hours }}>{String(hours).padStart(2, '0')}</span>
+              <span style={{ color: '#7f8c8d' }}>:</span>
+              <span style={{ color: COLORS.minutes }}>{String(minutes).padStart(2, '0')}</span>
+              <span style={{ color: '#7f8c8d' }}>:</span>
+              <span style={{ color: COLORS.seconds }}>{String(seconds).padStart(2, '0')}</span>
+            </>
+          )}
+        </div>
+        {(simplifiedMode ? (selectedUnits.year || selectedUnits.months || selectedUnits.days) : true) && (
+          <div style={{ fontSize: '16px', marginTop: '4px' }}>
             {simplifiedMode ? (
-              // I enkel modus: vis kun valgte enheter
               <>
-                {selectedUnits.hours && (
-                  <tspan fill={COLORS.hours} fontSize="32">{String(hours).padStart(2, '0')}</tspan>
+                {selectedUnits.days && (
+                  <span style={{ color: COLORS.days, fontWeight: '600' }}>{day}.</span>
                 )}
-                {selectedUnits.hours && selectedUnits.minutes && (
-                  <tspan fill="#7f8c8d" fontSize="32">:</tspan>
+                {selectedUnits.days && selectedUnits.months && ' '}
+                {selectedUnits.months && (
+                  <span style={{ color: COLORS.months, fontWeight: '600' }}>{months[month].toLowerCase()}</span>
                 )}
-                {selectedUnits.minutes && (
-                  <tspan fill={COLORS.minutes} fontSize="32">{String(minutes).padStart(2, '0')}</tspan>
-                )}
-                {(selectedUnits.hours || selectedUnits.minutes) && selectedUnits.seconds && (
-                  <tspan fill="#7f8c8d" fontSize="32">:</tspan>
-                )}
-                {selectedUnits.seconds && (
-                  <tspan fill={COLORS.seconds} fontSize="32">{String(seconds).padStart(2, '0')}</tspan>
+                {(selectedUnits.days || selectedUnits.months) && selectedUnits.year && ' '}
+                {selectedUnits.year && (
+                  <span style={{ color: COLORS.year, fontWeight: '600' }}>{year}</span>
                 )}
               </>
             ) : (
-              // I full modus: vis alt
               <>
-                <tspan fill={COLORS.hours} fontSize="32">{String(hours).padStart(2, '0')}</tspan>
-                <tspan fill="#7f8c8d" fontSize="32">:</tspan>
-                <tspan fill={COLORS.minutes} fontSize="32">{String(minutes).padStart(2, '0')}</tspan>
-                <tspan fill="#7f8c8d" fontSize="32">:</tspan>
-                <tspan fill={COLORS.seconds} fontSize="32">{String(seconds).padStart(2, '0')}</tspan>
+                <span style={{ color: COLORS.year, fontWeight: '600' }}>{year}</span>
+                <span style={{ color: '#7f8c8d' }}>-</span>
+                <span style={{ color: COLORS.months, fontWeight: '600' }}>{String(month + 1).padStart(2, '0')}</span>
+                <span style={{ color: '#7f8c8d' }}>-</span>
+                <span style={{ color: COLORS.days, fontWeight: '600' }}>{String(day).padStart(2, '0')}</span>
               </>
             )}
-          </text>
-
-          {/* Center date display */}
-          {(simplifiedMode ? (selectedUnits.year || selectedUnits.months || selectedUnits.days) : true) && (
-            <text x={cx} y={cy + 20} textAnchor="middle" style={{ fontFamily: 'Georgia, serif', pointerEvents: 'none' }}>
-              {simplifiedMode ? (
-                // I enkel modus: vis kun valgte datoenheter
-                <>
-                  {selectedUnits.days && (
-                    <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{day}.</tspan>
-                  )}
-                  {selectedUnits.days && selectedUnits.months && (
-                    <tspan fill="#7f8c8d" fontSize="18"> </tspan>
-                  )}
-                  {selectedUnits.months && (
-                    <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{months[month].toLowerCase()}</tspan>
-                  )}
-                  {(selectedUnits.days || selectedUnits.months) && selectedUnits.year && (
-                    <tspan fill="#7f8c8d" fontSize="18"> </tspan>
-                  )}
-                  {selectedUnits.year && (
-                    <tspan fill={COLORS.year} fontSize="18" fontWeight="600">{year}</tspan>
-                  )}
-                </>
-              ) : (
-                // I full modus: vis alt
-                <>
-                  <tspan fill={COLORS.year} fontSize="18" fontWeight="600">{year}</tspan>
-                  <tspan fill="#7f8c8d" fontSize="18">-</tspan>
-                  <tspan fill={COLORS.months} fontSize="18" fontWeight="600">{String(month + 1).padStart(2, '0')}</tspan>
-                  <tspan fill="#7f8c8d" fontSize="18">-</tspan>
-                  <tspan fill={COLORS.days} fontSize="18" fontWeight="600">{String(day).padStart(2, '0')}</tspan>
-                </>
-              )}
-            </text>
-          )}
-        </svg>
+          </div>
+        )}
       </div>
 
       {/* Draggable Palettes - hidden when sidebar is used */}
