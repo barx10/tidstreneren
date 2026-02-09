@@ -86,7 +86,7 @@ function Stepper({ value, label, width, color, onIncrement, onDecrement }) {
   );
 }
 
-function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false, clockSize: propClockSize, setClockSize: propSetClockSize, isRunning = true }) {
+function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, setCurrentTime, hidePalettes = false, clockSize: propClockSize, setClockSize: propSetClockSize, isRunning = true, setIsRunning }) {
   const { t, language } = useLanguage();
   const months = t('months');
   const [internalClockSize, setInternalClockSize] = useState(hidePalettes ? 600 : 700);
@@ -240,6 +240,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const handleMouseDown = (ringName, e) => {
     e.preventDefault();
     setIsDragging(ringName);
+    if (setIsRunning) setIsRunning(false);
     if (ringName === 'months') {
       lastDraggedMonth.current = currentTime.getMonth();
     }
@@ -298,7 +299,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
     lastDraggedMonth.current = null;
-  }, []);
+    if (setIsRunning) setIsRunning(true);
+  }, [setIsRunning]);
 
   useEffect(() => {
     if (isDragging) {
@@ -315,6 +317,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const startHandDrag = (hand, e) => {
     e.preventDefault();
     setIsDraggingHand(hand);
+    if (setIsRunning) setIsRunning(false);
   };
 
   const handleHandMove = useCallback((e) => {
@@ -354,7 +357,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
   const handleHandUp = useCallback(() => {
     setIsDraggingHand(null);
-  }, []);
+    if (setIsRunning) setIsRunning(true);
+  }, [setIsRunning]);
 
   useEffect(() => {
     if (isDraggingHand) {

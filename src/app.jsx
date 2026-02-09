@@ -23,11 +23,11 @@ function App() {
   const [isRunning, setIsRunning] = useState(true);
   const [clockSize, setClockSize] = useState(700);
 
-  // Time update effect
+  // Time update effect - ticks forward from current time (preserves manual adjustments)
   useEffect(() => {
     if (!isRunning) return;
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(prev => new Date(prev.getTime() + 1000));
     }, 1000);
     return () => clearInterval(interval);
   }, [isRunning]);
@@ -270,6 +270,7 @@ function App() {
             clockSize={clockSize}
             setClockSize={setClockSize}
             isRunning={isRunning}
+            setIsRunning={setIsRunning}
           />
         </main>
       </div>
