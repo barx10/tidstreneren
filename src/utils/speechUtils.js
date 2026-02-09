@@ -1,15 +1,21 @@
-// TTS-modul med Google Chirp3-HD (via free-tts) og Web Speech API fallback
-// Optimalisert for norsk og engelsk tale
+// TTS-modul med Edge TTS (via HuggingFace Space) og Web Speech API fallback
+// Optimalisert for norsk og engelsk tale med naturlige Microsoft Neural stemmer
 import { timeToText } from './timeUtils';
 
-// TTS Provider konfiguration
-let useGoogleTTS = true; // Prøv Google først
-const GOOGLE_TTS_API = 'https://free-tts.thvroyal.workers.dev/api/text-to-speech';
+// Edge TTS via HuggingFace Gradio Space
+const EDGE_TTS_SPACE = 'https://innoai-edge-tts-text-to-speech.hf.space';
 
-// Chirp3-HD stemmer
-const VOICES = {
-  no: { languageCode: 'nb-NO', voiceName: 'Kore' },  // Kvinnelig norsk
-  en: { languageCode: 'en-US', voiceName: 'Kore' },  // Kvinnelig engelsk
+// Microsoft Neural stemmer (Edge TTS)
+const EDGE_VOICES = {
+  no: 'nb-NO-PernilleNeural',
+  en: 'en-US-JennyNeural',
+};
+
+// Google Chirp3-HD fallback
+const GOOGLE_TTS_API = 'https://free-tts.thvroyal.workers.dev/api/text-to-speech';
+const GOOGLE_VOICES = {
+  no: { languageCode: 'nb-NO', voiceName: 'Kore' },
+  en: { languageCode: 'en-US', voiceName: 'Kore' },
 };
 
 // Cache for native stemmer
@@ -18,7 +24,7 @@ let norwegianVoice = null;
 let englishVoice = null;
 let isInitialized = false;
 
-// Audio element for Google TTS
+// Audio element for cloud TTS
 let currentAudio = null;
 
 // Standard TTS-innstillinger
@@ -125,11 +131,72 @@ function findBestVoice(lang) {
 }
 
 /**
- * Snakk med Google Chirp3-HD via free-tts
+ * Snakk med Edge TTS via HuggingFace Space (Gradio API)
+ * Bruker Microsoft Neural stemmer - mye mer naturlig enn Google Chirp3-HD
+ */
+async function speakWithEdgeTTS(text, lang) {
+  try {
+    const voice = EDGE_VOICES[lang] || EDGE_VOICES.en;
+
+    // Gradio API: start job
+    const joinResponse = await fetch(`${EDGE_TTS_SPACE}/call/tts_interface`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: [text, voice, 0, 0],
+      }),
+    });
+
+    if (!joinResponse.ok) {
+      throw new Error(`Edge TTS join feilet: ${joinResponse.status}`);
+    }
+
+    const { event_id } = await joinResponse.json();
+
+    // Gradio API: hent resultat via SSE stream
+    const resultResponse = await fetch(`${EDGE_TTS_SPACE}/call/tts_interface/${event_id}`);
+    if (!resultResponse.ok) {
+      throw new Error(`Edge TTS result feilet: ${resultResponse.status}`);
+    }
+
+    const resultText = await resultResponse.text();
+
+    // Parse SSE-format: finn "data: " linjen med JSON-resultatet
+    const dataLine = resultText.split('\n').find(line => line.startsWith('data: '));
+    if (!dataLine) {
+      throw new Error('Ingen data i Edge TTS-respons');
+    }
+
+    const data = JSON.parse(dataLine.slice(6));
+    // data er [audioFileData, warningText] - audioFileData har url-felt
+    const audioData = data[0];
+    if (!audioData || !audioData.url) {
+      throw new Error('Ingen audio-URL i respons');
+    }
+
+    // Stopp eventuell pågående lyd
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+
+    const audio = new Audio(audioData.url);
+    currentAudio = audio;
+    audio.volume = userSettings.volume;
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.warn('Edge TTS feilet:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Snakk med Google Chirp3-HD via free-tts (fallback)
  */
 async function speakWithGoogle(text, lang) {
   try {
-    const voiceConfig = VOICES[lang] || VOICES.en;
+    const voiceConfig = GOOGLE_VOICES[lang] || GOOGLE_VOICES.en;
 
     const response = await fetch(GOOGLE_TTS_API, {
       method: 'POST',
@@ -150,13 +217,11 @@ async function speakWithGoogle(text, lang) {
     const data = await response.json();
 
     if (data.audioContent) {
-      // Stopp eventuell pågående lyd
       if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
       }
 
-      // Spill av base64 audio
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
       currentAudio = audio;
       audio.volume = userSettings.volume;
@@ -172,7 +237,7 @@ async function speakWithGoogle(text, lang) {
 }
 
 /**
- * Snakk med native Web Speech API
+ * Snakk med native Web Speech API (siste fallback)
  */
 function speakWithNative(text, lang, options = {}) {
   if (!('speechSynthesis' in window)) {
@@ -205,6 +270,7 @@ function speakWithNative(text, lang, options = {}) {
 
 /**
  * Hovedfunksjon for å snakke tekst
+ * Prøver: 1) Edge TTS  2) Google Chirp3-HD  3) Native Web Speech API
  */
 export async function speak(text, lang = 'no', options = {}) {
   if (!text || text.trim().length === 0) {
@@ -214,17 +280,22 @@ export async function speak(text, lang = 'no', options = {}) {
   // Stopp pågående tale
   stopSpeaking();
 
-  // Prøv Google TTS først
-  if (useGoogleTTS) {
-    const success = await speakWithGoogle(text, lang);
-    if (success) {
-      options.onStart?.();
-      return { provider: 'google' };
-    }
-    console.log('Faller tilbake til native TTS');
+  // 1) Prøv Edge TTS først (beste kvalitet)
+  const edgeSuccess = await speakWithEdgeTTS(text, lang);
+  if (edgeSuccess) {
+    options.onStart?.();
+    return { provider: 'edge' };
   }
 
-  // Fallback til native
+  // 2) Fallback til Google Chirp3-HD
+  const googleSuccess = await speakWithGoogle(text, lang);
+  if (googleSuccess) {
+    options.onStart?.();
+    return { provider: 'google' };
+  }
+
+  // 3) Siste fallback: native Web Speech API
+  console.log('Faller tilbake til native TTS');
   return speakWithNative(text, lang, options);
 }
 
@@ -232,12 +303,10 @@ export async function speak(text, lang = 'no', options = {}) {
  * Stopp pågående tale
  */
 export function stopSpeaking() {
-  // Stopp Google audio
   if (currentAudio) {
     currentAudio.pause();
     currentAudio = null;
   }
-  // Stopp native TTS
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -254,52 +323,26 @@ export function isTTSAvailable() {
  * Sjekk om norsk stemme er tilgjengelig
  */
 export function hasNorwegianVoice() {
-  return useGoogleTTS || norwegianVoice !== null;
+  return true; // Edge TTS alltid tilgjengelig
 }
 
 /**
  * Sjekk om engelsk stemme er tilgjengelig
  */
 export function hasEnglishVoice() {
-  return useGoogleTTS || englishVoice !== null;
+  return true;
 }
 
 /**
  * Hent info om nåværende stemme
  */
 export function getCurrentVoiceInfo(lang = 'no') {
-  if (useGoogleTTS) {
-    const config = VOICES[lang] || VOICES.en;
-    return {
-      name: `Google Chirp3-HD ${config.voiceName}`,
-      lang: config.languageCode,
-      provider: 'google',
-    };
-  }
-
-  const voice = lang === 'no' ? norwegianVoice : englishVoice;
-  if (!voice) return null;
+  const edgeVoice = EDGE_VOICES[lang] || EDGE_VOICES.en;
   return {
-    name: voice.name,
-    lang: voice.lang,
-    localService: voice.localService,
-    provider: 'native',
+    name: `Edge TTS ${edgeVoice}`,
+    lang: lang === 'no' ? 'nb-NO' : 'en-US',
+    provider: 'edge',
   };
-}
-
-/**
- * Aktiver/deaktiver Google TTS
- */
-export function setUseGoogleTTS(enabled) {
-  useGoogleTTS = enabled;
-  console.log(`Google TTS ${enabled ? 'aktivert' : 'deaktivert'}`);
-}
-
-/**
- * Sjekk om Google TTS er aktivert
- */
-export function isGoogleTTSEnabled() {
-  return useGoogleTTS;
 }
 
 /**
