@@ -52,7 +52,6 @@ function SplashScreen({ onClose }) {
           position: 'fixed',
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
           background: 'white',
           borderRadius: '20px',
           padding: '40px',
@@ -70,47 +69,19 @@ function SplashScreen({ onClose }) {
           textAlign: 'center',
         }}
       >
-        {/* Illustration - place image at public/splash-illustration.png or src/assets/splash-illustration.png */}
-        <div
-          style={{
-            width: '100%',
-            height: '250px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '16px',
-            marginBottom: '30px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: '60px',
-            fontWeight: 'bold',
-          }}
-        >
-          {showImage ? (
-            <img
-              src="/splash-illustrations.png"
-              alt="Tidstreneren"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '16px',
-              }}
-            />
-          ) : null}
-        </div>
-
-        {/* Title */}
-        <h1
-          style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: '#2c3e50',
-            margin: '0 0 12px 0',
-          }}
-        >
-          🕐 Tidstreneren
-        </h1>
+        {/* Illustration */}
+        {showImage && (
+          <img
+            src="/splash-illustrations.png"
+            alt="Tidstreneren"
+            style={{
+              width: '80%',
+              maxHeight: '300px',
+              objectFit: 'contain',
+              marginBottom: '24px',
+            }}
+          />
+        )}
 
         {/* Subtitle */}
         <p
