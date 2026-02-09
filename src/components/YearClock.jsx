@@ -213,10 +213,12 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
     { name: 'seconds', count: 60, value: seconds, color: COLORS.seconds, label: t('clock.secondsLabel') },
   ];
 
-  // Filtrer ringer basert på modus
+  // Normal mode: only time rings (hours, minutes, seconds)
+  // Simplified mode: only selected units
+  const timeOnlyRings = ['hours', 'minutes', 'seconds'];
   const activeRings = simplifiedMode
     ? allRings.filter(ring => selectedUnits[ring.name])
-    : allRings;
+    : allRings.filter(ring => timeOnlyRings.includes(ring.name));
 
   // Beregn dynamisk radius basert på antall aktive ringer
   const ringConfig = activeRings.map((ring, index) => ({
@@ -503,33 +505,37 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
             </>
           )}
 
-          {/* Month labels - vis i normal modus, eller i enkel modus når måneder/år er valgt */}
-          {(!simplifiedMode || selectedUnits.months || selectedUnits.year) && months.map((m, i) => {
-            const centerAngle = ((i + 0.5) * 30 - 90) * (Math.PI / 180);
-            const labelRadius = 330;
-            const x = cx + labelRadius * Math.cos(centerAngle);
-            const y = cy + labelRadius * Math.sin(centerAngle);
-            const rotationDeg = (i + 0.5) * 30;
-            const flipText = rotationDeg > 90 && rotationDeg < 270;
-            return (
-              <text
-                key={m}
-                x={x}
-                y={y}
-                fill={i === month ? '#d35400' : '#7f8c8d'}
-                fontSize="16"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontWeight={i === month ? 'bold' : 'normal'}
-                transform={`rotate(${flipText ? rotationDeg + 180 : rotationDeg}, ${x}, ${y})`}
-                style={{ fontFamily: 'Georgia, serif', cursor: 'pointer' }}
-                className="month-label"
-                onClick={() => speak(m, language)}
-              >
-                {m}
-              </text>
-            );
-          })}
+          {/* Month labels - only in simplified mode when months/year selected */}
+          {simplifiedMode && (selectedUnits.months || selectedUnits.year) && (() => {
+            const monthsRing = ringConfig.find(r => r.name === 'months');
+            if (!monthsRing) return null;
+            const labelRadius = monthsRing.radius + 30;
+            return months.map((m, i) => {
+              const centerAngle = ((i + 0.5) * 30 - 90) * (Math.PI / 180);
+              const x = cx + labelRadius * Math.cos(centerAngle);
+              const y = cy + labelRadius * Math.sin(centerAngle);
+              const rotationDeg = (i + 0.5) * 30;
+              const flipText = rotationDeg > 90 && rotationDeg < 270;
+              return (
+                <text
+                  key={m}
+                  x={x}
+                  y={y}
+                  fill={i === month ? '#d35400' : '#7f8c8d'}
+                  fontSize="16"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontWeight={i === month ? 'bold' : 'normal'}
+                  transform={`rotate(${flipText ? rotationDeg + 180 : rotationDeg}, ${x}, ${y})`}
+                  style={{ fontFamily: 'Georgia, serif', cursor: 'pointer' }}
+                  className="month-label"
+                  onClick={() => speak(m, language)}
+                >
+                  {m}
+                </text>
+              );
+            });
+          })()}
 
           {/* Labels for alle ringer - plassert over hver ring */}
           {ringConfig.map((ring) => {
