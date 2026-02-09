@@ -96,7 +96,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
   const [isDraggingHand, setIsDraggingHand] = useState(null);
   const svgRef = useRef(null);
   const analogClockRef = useRef(null);
-  const lastDraggedMonth = useRef(null);
+  const lastDragValue = useRef(null);
   const currentTimeRef = useRef(currentTime);
 
   const [palettePositions, setPalettePositions] = useState({
@@ -241,9 +241,8 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
     e.preventDefault();
     setIsDragging(ringName);
     if (setIsRunning) setIsRunning(false);
-    if (ringName === 'months') {
-      lastDraggedMonth.current = currentTime.getMonth();
-    }
+    const ring = allRings.find(r => r.name === ringName);
+    if (ring) lastDragValue.current = ring.value;
   };
 
   const handleMouseMove = useCallback((e) => {
@@ -264,33 +263,39 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
     const newValue = Math.floor((angle / 360) * ring.count);
     const newDate = new Date(currentTimeRef.current);
 
-    switch (isDragging) {
-      case 'months':
-        // Håndter år-overgang ved dragging over desember/januar-grensen
-        const prevMonth = lastDraggedMonth.current;
-        if (prevMonth !== null) {
-          // Sjekk om vi krysser desember/januar-grensen
-          if (prevMonth >= 10 && newValue <= 2) {
-            newDate.setFullYear(newDate.getFullYear() + 1);
-          } else if (prevMonth <= 2 && newValue >= 10) {
-            newDate.setFullYear(newDate.getFullYear() - 1);
-          }
+    // Cascade to parent unit when crossing boundary (like an odometer)
+    const prevValue = lastDragValue.current;
+    if (prevValue !== null) {
+      const quarter = Math.floor(ring.count / 4);
+      if (prevValue >= ring.count - quarter && newValue <= quarter) {
+        // Forward crossing (e.g., 59→0): increment parent
+        switch (isDragging) {
+          case 'seconds': newDate.setMinutes(newDate.getMinutes() + 1); break;
+          case 'minutes': newDate.setHours(newDate.getHours() + 1); break;
+          case 'hours': newDate.setDate(newDate.getDate() + 1); break;
+          case 'days': newDate.setMonth(newDate.getMonth() + 1); break;
+          case 'months': newDate.setFullYear(newDate.getFullYear() + 1); break;
         }
-        newDate.setMonth(newValue);
-        lastDraggedMonth.current = newValue;
-        break;
-      case 'days':
-        newDate.setDate(newValue + 1);
-        break;
-      case 'hours':
-        newDate.setHours(newValue);
-        break;
-      case 'minutes':
-        newDate.setMinutes(newValue);
-        break;
-      case 'seconds':
-        newDate.setSeconds(newValue);
-        break;
+      } else if (prevValue <= quarter && newValue >= ring.count - quarter) {
+        // Backward crossing (e.g., 0→59): decrement parent
+        switch (isDragging) {
+          case 'seconds': newDate.setMinutes(newDate.getMinutes() - 1); break;
+          case 'minutes': newDate.setHours(newDate.getHours() - 1); break;
+          case 'hours': newDate.setDate(newDate.getDate() - 1); break;
+          case 'days': newDate.setMonth(newDate.getMonth() - 1); break;
+          case 'months': newDate.setFullYear(newDate.getFullYear() - 1); break;
+        }
+      }
+    }
+    lastDragValue.current = newValue;
+
+    // Set the dragged unit's value
+    switch (isDragging) {
+      case 'months': newDate.setMonth(newValue); break;
+      case 'days': newDate.setDate(newValue + 1); break;
+      case 'hours': newDate.setHours(newValue); break;
+      case 'minutes': newDate.setMinutes(newValue); break;
+      case 'seconds': newDate.setSeconds(newValue); break;
     }
 
     setCurrentTime(newDate);
@@ -298,7 +303,7 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
-    lastDraggedMonth.current = null;
+    lastDragValue.current = null;
     if (setIsRunning) setIsRunning(true);
   }, [setIsRunning]);
 
