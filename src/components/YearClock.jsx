@@ -2,17 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Palette from './Palette';
 import { speak, initVoices } from '../utils/speechUtils';
 import { useLanguage } from '../context/LanguageContext';
+import { COLORS } from '../constants/colors';
 
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-const COLORS = {
-  year: '#16a085',
-  months: '#e67e22',
-  days: '#27ae60',
-  hours: '#2980b9',
-  minutes: '#8e44ad',
-  seconds: '#c0392b',
-};
 
 const leapDayColor = '#9b59b6';
 const leapDayGlow = '#8e44ad';
@@ -138,17 +130,6 @@ function YearClock({ simplifiedMode = false, selectedUnits = {}, currentTime, se
       };
     });
   }, []);
-
-  // Time update
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isRunning]);
 
   // Extract time components
   const year = currentTime.getFullYear();

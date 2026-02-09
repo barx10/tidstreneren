@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-
-const COLORS = {
-  months: '#e67e22',
-  days: '#27ae60',
-  hours: '#2980b9',
-  minutes: '#8e44ad',
-  seconds: '#c0392b',
-};
+import { COLORS } from '../constants/colors';
 
 function HelpBox() {
   const { t } = useLanguage();

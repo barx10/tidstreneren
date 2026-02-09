@@ -1,5 +1,6 @@
 // TTS-modul med Google Chirp3-HD (via free-tts) og Web Speech API fallback
 // Optimalisert for norsk og engelsk tale
+import { timeToText } from './timeUtils';
 
 // TTS Provider konfiguration
 let useGoogleTTS = true; // Prøv Google først
@@ -326,36 +327,7 @@ export function resetSettings() {
  * Snakk klokkeslett
  */
 export function speakTime(hours, minutes, lang = 'no') {
-  let text;
-
-  if (lang === 'no') {
-    if (minutes === 0) {
-      text = `klokken ${hours}`;
-    } else if (minutes === 30) {
-      text = `halv ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-    } else if (minutes === 15) {
-      text = `kvart over ${hours}`;
-    } else if (minutes === 45) {
-      text = `kvart på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-    } else if (minutes < 30) {
-      text = `${minutes} over ${hours}`;
-    } else {
-      text = `${60 - minutes} på ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-    }
-  } else {
-    if (minutes === 0) {
-      text = `${hours} o'clock`;
-    } else if (minutes === 30) {
-      text = `half past ${hours}`;
-    } else if (minutes === 15) {
-      text = `quarter past ${hours}`;
-    } else if (minutes === 45) {
-      text = `quarter to ${hours + 1 > 12 ? hours + 1 - 12 : hours + 1}`;
-    } else {
-      text = `${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
-    }
-  }
-
+  const text = timeToText(hours, minutes, lang);
   speak(text, lang);
 }
 
