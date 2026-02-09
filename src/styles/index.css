@@ -29,6 +29,23 @@ input:focus {
   outline-offset: 2px;
 }
 
+/* Mobile styles */
+@media (max-width: 767px) {
+  body {
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    overflow-x: hidden;
+  }
+
+  /* Prevent horizontal scroll from sidebar transition */
+  html {
+    overflow-x: hidden;
+  }
+}
+
 /* Print styles */
 @media print {
   body {

@@ -16,15 +16,17 @@ function HelpBox() {
     { id: 'tips', label: t('help.tabs.tips') },
   ];
 
+  const isMobile = window.innerWidth < 768;
+
   return (
     <div style={{
-      position: 'fixed',
-      left: 20,
-      top: 20,
-      width: '360px',
+      position: isMobile ? 'relative' : 'fixed',
+      left: isMobile ? undefined : 20,
+      top: isMobile ? undefined : 20,
+      width: isMobile ? '100%' : '360px',
       background: 'white',
       borderRadius: '16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+      boxShadow: isMobile ? 'none' : '0 8px 32px rgba(0,0,0,0.15)',
       zIndex: 999,
       overflow: 'hidden',
     }}>

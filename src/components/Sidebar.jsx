@@ -10,7 +10,9 @@ function Sidebar({
   isRunning,
   setIsRunning,
   simplifiedMode,
-  selectedUnits
+  selectedUnits,
+  isMobile = false,
+  isOpen = false,
 }) {
   const { t, language } = useLanguage();
   const months = t('months');
@@ -93,17 +95,19 @@ function Sidebar({
 
   return (
     <div style={{
-      width: '280px',
+      width: isMobile ? '300px' : '280px',
       height: '100vh',
       position: 'fixed',
-      right: 0,
+      right: isMobile && !isOpen ? '-300px' : 0,
       top: 0,
       background: '#f5f6fa',
       borderLeft: '1px solid #e0e0e0',
-      padding: '70px 16px 16px 16px',
+      padding: isMobile ? '16px 16px 80px 16px' : '70px 16px 16px 16px',
       overflowY: 'auto',
       boxSizing: 'border-box',
-      zIndex: 100,
+      zIndex: isMobile ? 1060 : 100,
+      transition: 'right 0.3s ease',
+      boxShadow: isMobile && isOpen ? '-4px 0 20px rgba(0,0,0,0.15)' : 'none',
     }}>
       {/* Dato & Tid Display */}
       <div style={sectionStyle}>

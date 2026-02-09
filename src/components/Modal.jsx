@@ -1,6 +1,8 @@
 import React from 'react';
 
 function Modal({ onClose, maxWidth = '800px', children }) {
+  const isMobile = window.innerWidth < 768;
+
   return (
     <div
       onClick={onClose}
@@ -12,18 +14,20 @@ function Modal({ onClose, maxWidth = '800px', children }) {
         bottom: 0,
         background: 'rgba(0,0,0,0.5)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 2000,
+        padding: isMobile ? 0 : '20px',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'white',
-          borderRadius: '16px',
-          maxWidth,
-          maxHeight: '80vh',
+          borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+          maxWidth: isMobile ? '100%' : maxWidth,
+          width: isMobile ? '100%' : undefined,
+          maxHeight: isMobile ? '85vh' : '80vh',
           overflow: 'auto',
           position: 'relative',
         }}

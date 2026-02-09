@@ -13,11 +13,19 @@ import { useLanguage } from './context/LanguageContext';
 import AboutModal from './components/AboutModal';
 import Calendar from './components/Calendar';
 
-function getResponsiveClockSize() {
-  const w = window.innerWidth - 280; // subtract sidebar width
+const MOBILE_BREAKPOINT = 768;
+
+function getIsMobile() {
+  return window.innerWidth < MOBILE_BREAKPOINT;
+}
+
+function getResponsiveClockSize(isMobile) {
+  const sidebarWidth = isMobile ? 0 : 280;
+  const w = window.innerWidth - sidebarWidth;
   const h = window.innerHeight - 60; // subtract header height
   const available = Math.min(w, h) - 40; // padding
-  return Math.max(350, Math.min(available, 700));
+  const minSize = isMobile ? 260 : 350;
+  return Math.max(minSize, Math.min(available, 700));
 }
 
 function App() {
@@ -28,12 +36,17 @@ function App() {
   const [simplifiedMode, setSimplifiedMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRunning, setIsRunning] = useState(true);
-  const [clockSize, setClockSize] = useState(() => getResponsiveClockSize());
+  const [isMobile, setIsMobile] = useState(() => getIsMobile());
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [clockSize, setClockSize] = useState(() => getResponsiveClockSize(getIsMobile()));
 
-  // Recalculate clock size on window resize
+  // Recalculate clock size and mobile state on window resize
   useEffect(() => {
     const handleResize = () => {
-      setClockSize(getResponsiveClockSize());
+      const mobile = getIsMobile();
+      setIsMobile(mobile);
+      setClockSize(getResponsiveClockSize(mobile));
+      if (!mobile) setShowSidebar(false);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -90,7 +103,7 @@ function App() {
       {/* Main Content Area */}
       <div style={{
         flex: 1,
-        marginRight: '280px',
+        marginRight: isMobile ? 0 : '280px',
         display: 'flex',
         flexDirection: 'column',
       }}>
@@ -99,30 +112,30 @@ function App() {
           position: 'fixed',
           top: 0,
           left: 0,
-          right: '280px',
+          right: isMobile ? 0 : '280px',
           height: '60px',
           background: 'white',
           borderBottom: '1px solid #e0e0e0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
+          padding: isMobile ? '0 12px' : '0 24px',
           zIndex: 1001,
         }}>
           <h1 style={{
-            fontSize: '20px',
+            fontSize: isMobile ? '16px' : '20px',
             fontWeight: '600',
             color: '#2c3e50',
             margin: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '6px',
           }}>
-            <span style={{ fontSize: '24px' }}>🕐</span>
+            <span style={{ fontSize: isMobile ? '20px' : '24px' }}>🕐</span>
             {t('appName')}
           </h1>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: isMobile ? '6px' : '12px', alignItems: 'center' }}>
             <LanguageToggle />
 
             {/* Menu Button */}
@@ -130,7 +143,7 @@ function App() {
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 style={{
-                  padding: '8px 16px',
+                  padding: isMobile ? '6px 10px' : '8px 16px',
                   background: showMenu
                     ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                     : 'white',
@@ -146,7 +159,7 @@ function App() {
                 }}
               >
                 <span style={{ fontSize: '18px' }}>☰</span>
-                {t('nav.menu')}
+                {!isMobile && t('nav.menu')}
               </button>
 
               {/* Dropdown Menu */}
@@ -227,7 +240,7 @@ function App() {
           <div style={{
             position: 'absolute',
             top: '80px',
-            left: '24px',
+            left: isMobile ? '12px' : '24px',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -236,8 +249,8 @@ function App() {
             <button
               onClick={() => setClockSize(prev => Math.min(prev + 50, 1000))}
               style={{
-                width: '40px',
-                height: '40px',
+                width: isMobile ? '34px' : '40px',
+                height: isMobile ? '34px' : '40px',
                 borderRadius: '50%',
                 border: 'none',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -255,10 +268,10 @@ function App() {
               +
             </button>
             <button
-              onClick={() => setClockSize(prev => Math.max(prev - 50, 400))}
+              onClick={() => setClockSize(prev => Math.max(prev - 50, isMobile ? 200 : 400))}
               style={{
-                width: '40px',
-                height: '40px',
+                width: isMobile ? '34px' : '40px',
+                height: isMobile ? '34px' : '40px',
                 borderRadius: '50%',
                 border: 'none',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -291,7 +304,51 @@ function App() {
         </main>
       </div>
 
-      {/* Fixed Sidebar */}
+      {/* Mobile sidebar toggle button */}
+      {isMobile && (
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            border: 'none',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            zIndex: 1100,
+          }}
+          title={t('clock.controls')}
+        >
+          {showSidebar ? '✕' : '⚙'}
+        </button>
+      )}
+
+      {/* Mobile sidebar overlay */}
+      {isMobile && showSidebar && (
+        <div
+          onClick={() => setShowSidebar(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.4)',
+            zIndex: 1050,
+          }}
+        />
+      )}
+
+      {/* Sidebar */}
       <Sidebar
         currentTime={currentTime}
         setCurrentTime={setCurrentTime}
@@ -299,6 +356,8 @@ function App() {
         setIsRunning={setIsRunning}
         simplifiedMode={simplifiedMode}
         selectedUnits={selectedUnits}
+        isMobile={isMobile}
+        isOpen={showSidebar}
       />
 
       {/* Click outside to close menu */}
