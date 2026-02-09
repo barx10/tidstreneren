@@ -1,5 +1,7 @@
 export const translations = {
   no: {
+    appName: 'Tidstreneren',
+
     // App/Navigation
     nav: {
       hideHelp: 'Skjul hjelp',
@@ -335,6 +337,8 @@ export const translations = {
   },
 
   en: {
+    appName: 'Time Coach',
+
     // App/Navigation
     nav: {
       hideHelp: 'Hide help',

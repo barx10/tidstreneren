@@ -150,7 +150,7 @@ function AboutModal({ onClose }) {
             fontSize: '12px',
             color: '#999',
           }}>
-            Autismeklokke © 2026
+            Tidstreneren © 2026
           </p>
         </div>
       </div>

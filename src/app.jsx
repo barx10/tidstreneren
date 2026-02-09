@@ -13,6 +13,13 @@ import { useLanguage } from './context/LanguageContext';
 import AboutModal from './components/AboutModal';
 import Calendar from './components/Calendar';
 
+function getResponsiveClockSize() {
+  const w = window.innerWidth - 280; // subtract sidebar width
+  const h = window.innerHeight - 60; // subtract header height
+  const available = Math.min(w, h) - 40; // padding
+  return Math.max(350, Math.min(available, 700));
+}
+
 function App() {
   const { t } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
@@ -21,7 +28,16 @@ function App() {
   const [simplifiedMode, setSimplifiedMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRunning, setIsRunning] = useState(true);
-  const [clockSize, setClockSize] = useState(700);
+  const [clockSize, setClockSize] = useState(() => getResponsiveClockSize());
+
+  // Recalculate clock size on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setClockSize(getResponsiveClockSize());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Time update effect - ticks forward from current time (preserves manual adjustments)
   useEffect(() => {
@@ -103,7 +119,7 @@ function App() {
             gap: '8px',
           }}>
             <span style={{ fontSize: '24px' }}>🕐</span>
-            Tidstreneren
+            {t('appName')}
           </h1>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

@@ -9,12 +9,8 @@ function SplashScreen({ onClose }) {
     // Entrance animation
     const enterTimer = setTimeout(() => setPhase('visible'), 50);
 
-    // Auto-close after 4 seconds
-    const closeTimer = setTimeout(() => handleClose(), 4000);
-
     return () => {
       clearTimeout(enterTimer);
-      clearTimeout(closeTimer);
     };
   }, []);
 
@@ -28,7 +24,6 @@ function SplashScreen({ onClose }) {
 
   return (
     <div
-      onClick={handleClose}
       style={{
         position: 'fixed',
         top: 0,
@@ -42,7 +37,6 @@ function SplashScreen({ onClose }) {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
         opacity: isExiting ? 0 : isVisible ? 1 : 0,
         transition: 'opacity 0.4s ease-out',
-        cursor: 'pointer',
         overflow: 'hidden',
       }}
     >
@@ -104,9 +98,9 @@ function SplashScreen({ onClose }) {
             src="/splash-illustrations.png"
             alt="Tidstreneren"
             style={{
-              width: '180px',
-              height: '180px',
-              objectFit: 'contain',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
               objectPosition: 'center 35%',
             }}
           />
@@ -164,14 +158,7 @@ function SplashScreen({ onClose }) {
           {t('splash.getStarted')}
         </button>
 
-        {/* Auto-close hint */}
-        <p style={{
-          fontSize: '13px',
-          color: 'rgba(255,255,255,0.5)',
-          margin: '24px 0 0 0',
-        }}>
-          {t('splash.autoClose')}
-        </p>
+
       </div>
     </div>
   );
