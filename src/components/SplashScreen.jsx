@@ -3,137 +3,177 @@ import { useLanguage } from '../context/LanguageContext';
 
 function SplashScreen({ onClose }) {
   const { t } = useLanguage();
-  const [isVisible, setIsVisible] = useState(true);
-  const [showImage, setShowImage] = useState(true);
+  const [phase, setPhase] = useState('entering'); // entering -> visible -> exiting -> done
 
   useEffect(() => {
-    // Check if image exists by trying to load it
-    const img = new Image();
-    img.onload = () => setShowImage(true);
-    img.onerror = () => setShowImage(false);
-    img.src = '/splash-illustrations.png';
+    // Entrance animation
+    const enterTimer = setTimeout(() => setPhase('visible'), 50);
 
-    // Auto-close splash screen after 4 seconds
-    const timer = setTimeout(() => {
-      handleClose();
-    }, 4000);
+    // Auto-close after 4 seconds
+    const closeTimer = setTimeout(() => handleClose(), 4000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(enterTimer);
+      clearTimeout(closeTimer);
+    };
   }, []);
 
   const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300); // Allow fade-out animation
+    setPhase('exiting');
+    setTimeout(onClose, 400);
   };
 
-  return (
-    <>
-      {/* Blur backdrop */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.3)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 2500,
-          opacity: isVisible ? 1 : 0,
-          transition: 'opacity 0.3s ease-out',
-          pointerEvents: isVisible ? 'auto' : 'none',
-        }}
-        onClick={handleClose}
-      />
+  const isVisible = phase === 'visible';
+  const isExiting = phase === 'exiting';
 
-      {/* Splash screen modal */}
+  return (
+    <div
+      onClick={handleClose}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 2500,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+        opacity: isExiting ? 0 : isVisible ? 1 : 0,
+        transition: 'opacity 0.4s ease-out',
+        cursor: 'pointer',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Decorative background circles */}
+      <div style={{
+        position: 'absolute',
+        top: '-20%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.05)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '-15%',
+        left: '-10%',
+        width: '400px',
+        height: '400px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.05)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Content card */}
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          background: 'white',
-          borderRadius: '20px',
-          padding: '40px',
-          maxWidth: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          transform: isExiting
+            ? 'scale(0.9) translateY(20px)'
+            : isVisible
+              ? 'scale(1) translateY(0)'
+              : 'scale(0.9) translateY(20px)',
+          opacity: isExiting ? 0 : isVisible ? 1 : 0,
+          transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          maxWidth: '400px',
           width: '90%',
-          maxHeight: '80vh',
-          overflow: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          zIndex: 2501,
-          opacity: isVisible ? 1 : 0,
-          transform: isVisible
-            ? 'translate(-50%, -50%) scale(1)'
-            : 'translate(-50%, -50%) scale(0.9)',
-          transition: 'all 0.3s ease-out',
-          textAlign: 'center',
+          padding: '0 20px',
         }}
       >
-        {/* Illustration */}
-        {showImage && (
+        {/* Logo illustration in a white circular frame */}
+        <div style={{
+          width: '220px',
+          height: '220px',
+          borderRadius: '50%',
+          background: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2), 0 0 0 8px rgba(255,255,255,0.2)',
+          marginBottom: '32px',
+          overflow: 'hidden',
+        }}>
           <img
             src="/splash-illustrations.png"
             alt="Tidstreneren"
             style={{
-              width: '80%',
-              maxHeight: '300px',
+              width: '180px',
+              height: '180px',
               objectFit: 'contain',
-              marginBottom: '24px',
+              objectPosition: 'center 35%',
             }}
           />
-        )}
+        </div>
+
+        {/* App name */}
+        <h1 style={{
+          fontSize: '36px',
+          fontWeight: '700',
+          color: 'white',
+          margin: '0 0 8px 0',
+          textShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          letterSpacing: '-0.5px',
+        }}>
+          Tidstreneren
+        </h1>
 
         {/* Subtitle */}
-        <p
-          style={{
-            fontSize: '16px',
-            color: '#666',
-            margin: '0 0 30px 0',
-            lineHeight: '1.6',
-          }}
-        >
-          Lær å forstå tid på en enkel og morsom måte
+        <p style={{
+          fontSize: '16px',
+          color: 'rgba(255,255,255,0.85)',
+          margin: '0 0 36px 0',
+          lineHeight: '1.5',
+          textAlign: 'center',
+          textShadow: '0 1px 4px rgba(0,0,0,0.1)',
+        }}>
+          {t('splash.subtitle')}
         </p>
 
-        {/* Close button */}
+        {/* Get started button */}
         <button
           onClick={handleClose}
           style={{
-            padding: '12px 40px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '14px 48px',
+            background: 'white',
             border: 'none',
-            borderRadius: '10px',
-            color: 'white',
+            borderRadius: '50px',
+            color: '#764ba2',
             fontSize: '16px',
-            fontWeight: '600',
+            fontWeight: '700',
             cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
             transition: 'all 0.2s ease',
+            letterSpacing: '0.5px',
           }}
           onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+            e.target.style.transform = 'scale(1.05)';
+            e.target.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            e.target.style.transform = 'scale(1)';
+            e.target.style.boxShadow = '0 8px 30px rgba(0,0,0,0.2)';
           }}
         >
-          Kom i gang
+          {t('splash.getStarted')}
         </button>
 
-        {/* Skip text */}
-        <p
-          style={{
-            fontSize: '12px',
-            color: '#999',
-            margin: '20px 0 0 0',
-          }}
-        >
-          Stenger automatisk om 4 sekunder
+        {/* Auto-close hint */}
+        <p style={{
+          fontSize: '13px',
+          color: 'rgba(255,255,255,0.5)',
+          margin: '24px 0 0 0',
+        }}>
+          {t('splash.autoClose')}
         </p>
       </div>
-    </>
+    </div>
   );
 }
 
