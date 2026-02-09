@@ -30,9 +30,10 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
 
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const currentDay = currentDate.getDate();
+  const realToday = new Date();
+  const currentYear = realToday.getFullYear();
+  const currentMonth = realToday.getMonth();
+  const currentDay = realToday.getDate();
 
   // Få første dag i måneden
   const firstDay = new Date(year, month, 1);
@@ -54,7 +55,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
 
   // Beregn antall dager til en dato
   const daysUntil = (date) => {
-    const today = new Date(currentDate);
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(date);
     target.setHours(0, 0, 0, 0);
@@ -76,7 +77,10 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
   };
 
   const handleToday = () => {
-    setViewDate(new Date(currentDate));
+    const today = new Date();
+    setViewDate(new Date(today));
+    setSelectedDay(today.getDate());
+    onDateSelect(new Date(today.getFullYear(), today.getMonth(), today.getDate(), currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds()));
   };
 
   const handleDateClick = (day) => {
@@ -555,7 +559,7 @@ function Calendar({ onClose, currentDate, onDateSelect }) {
         }}>
           {selectedDay ? (() => {
             const selectedDateObj = new Date(year, month, selectedDay);
-            const today = new Date(currentDate);
+            const today = new Date();
 
             selectedDateObj.setHours(0, 0, 0, 0);
             today.setHours(0, 0, 0, 0);
